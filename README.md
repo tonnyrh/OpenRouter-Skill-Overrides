@@ -29,8 +29,9 @@ OpenRouter-Skill-Overrides/
     openrouter-glm52/
     openrouter-heavy-task-gate/
     openrouter-model-advisor/
-    openrouter-flux2-pro/      ← Codex image skill
-    flux2pro/                  ← Claude Code image skill
+    openrouter-flux2-pro/         ← Codex image skill
+    flux2pro/                     ← Claude Code image skill
+    openrouter-pdf-extract/       ← PDF-to-text extraction (Gemini Flash Lite)
   claude/
     commands/
       glm52.md
@@ -185,8 +186,17 @@ Claude Code runtime files installed:
 ~/.claude/skills/openrouter-heavy-task-gate
 ~/.claude/skills/openrouter-model-advisor
 ~/.claude/skills/flux2pro
+~/.claude/skills/openrouter-pdf-extract
 ~/.claude/commands/glm52.md
 ~/.claude/commands/heavy-task-gate.md
+```
+
+### PDF Text Extraction
+
+Extract text from a PDF using Gemini Flash Lite ($0.10/M, native PDF input, 1M context):
+
+```bash
+python ~/.claude/skills/openrouter-pdf-extract/scripts/extract_pdf.py "document.pdf" --output extracted.txt
 ```
 
 Claude Code may also keep an upstream clone at `~/.claude/openrouter-skills`. That clone is separate; update it from upstream, not from this repository.

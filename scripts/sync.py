@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 SKILLS: dict[str, list[str]] = {
-    "claude": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "flux2pro"],
-    "codex":  ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro"],
+    "claude": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "flux2pro", "openrouter-pdf-extract"],
+    "codex":  ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract"],
 }
 
 

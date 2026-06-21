@@ -59,9 +59,11 @@ def main() -> int:
         repo_root / "skills" / "openrouter-glm52" / "scripts" / "call_glm52.py",
         repo_root / "skills" / "openrouter-model-advisor" / "scripts" / "recommend_model.py",
         repo_root / "skills" / image_skill / "scripts" / image_script,
+        repo_root / "skills" / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
         skills / "openrouter-glm52" / "scripts" / "call_glm52.py",
         skills / "openrouter-model-advisor" / "scripts" / "recommend_model.py",
         skills / image_skill / "scripts" / image_script,
+        skills / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
     ]
     syntax_check(python_files)
 

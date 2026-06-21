@@ -52,6 +52,22 @@
         }
       ]
     },
+    "google/gemini-2.5-flash-lite": {
+      "quality_tier": "standard",
+      "task_strengths": ["long-context", "document-extract", "vision", "file"],
+      "api_contract": {
+        "payload_style": "chat_file_input",
+        "max_tokens_min": 1024,
+        "notes": "Native PDF and file input: send as content type 'file' with url 'data:application/pdf;base64,...'. Use 32000+ max_tokens for full-document extraction. Best choice for PDF-to-text at $0.10/M input — 12x cheaper than GLM 5.2. finish_reason=length means max_tokens too low."
+      },
+      "notes": [
+        {
+          "evidence_type": "local_live_call_observation",
+          "summary": "Verified 2026-06-21: selected over GLM 5.2 for 37-page IKEA kitchen PDF extraction. Native file modality support at $0.10/M vs $1.20/M.",
+          "source": "Claude Code session tonnyrh/OpenRouter-Skill-Overrides"
+        }
+      ]
+    },
     "z-ai/glm-5.2": {
       "quality_tier": "premium",
       "task_strengths": ["coding", "long-context", "analysis"],
