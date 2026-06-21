@@ -56,6 +56,31 @@ For faktisk second pass etter godkjenning er lokal default:
 python "$env:USERPROFILE\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 3000 "<fokusert prompt>"
 ```
 
+## Codex workflow
+
+Rediger skills i dette repoet, ikke direkte under `.codex\skills`.
+
+Synkroniser lokale custom-skills til aktiv Codex-installasjon:
+
+```powershell
+cd C:\vscode\OpenRouter-Skill-Overrides
+.\scripts\sync-codex.ps1
+```
+
+Kjør en rask Codex-sjekk uten GLM-kostnad:
+
+```powershell
+.\scripts\check-codex.ps1
+```
+
+Kjør samme sjekk med en minimal GLM 5.2 live-test:
+
+```powershell
+.\scripts\check-codex.ps1 -LiveGlm
+```
+
+`check-codex.ps1` bruker `ast.parse` for Python-syntaks slik at den ikke trenger å skrive `__pycache__` under `.codex\skills`.
+
 ## Modellvalg
 
 Standard tekst/koding/long-context:
