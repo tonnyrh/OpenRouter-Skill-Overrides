@@ -29,17 +29,15 @@ OpenRouter-Skill-Overrides/
     openrouter-glm52/
     openrouter-heavy-task-gate/
     openrouter-model-advisor/
-    openrouter-flux2-pro/
-    flux2pro/
+    openrouter-flux2-pro/      ← Codex image skill
+    flux2pro/                  ← Claude Code image skill
   claude/
     commands/
       glm52.md
       heavy-task-gate.md
   scripts/
-    sync-codex.ps1
-    check-codex.ps1
-    sync-claude.ps1
-    check-claude.ps1
+    sync.py                    ← cross-platform; use --tool claude|codex
+    check.py                   ← cross-platform; use --tool claude|codex
   docs/
     archive/
       claude-glm52-setup-note.md
@@ -96,19 +94,22 @@ Avoid noisy model shopping when:
 
 ## Prerequisites
 
-- Windows PowerShell 7 or Windows PowerShell 5.1.
 - Python 3.10 or newer available as `python`.
 - Git.
 - Optional but recommended: GitHub CLI (`gh`) for cloning private repositories.
 - `OPENROUTER_API_KEY` set in the local environment for live model calls.
 
-Set the API key for the current PowerShell session:
+Set the API key for the current session (any shell):
 
-```powershell
-$env:OPENROUTER_API_KEY = "sk-or-..."
+```bash
+export OPENROUTER_API_KEY="sk-or-..."   # bash / zsh / macOS / Linux
 ```
 
-Set it persistently for the Windows user:
+```powershell
+$env:OPENROUTER_API_KEY = "sk-or-..."   # PowerShell (Windows)
+```
+
+Set it persistently on Windows:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable("OPENROUTER_API_KEY", "sk-or-...", "User")
@@ -120,139 +121,117 @@ Never paste the API key into Codex or Claude chat unless you deliberately choose
 
 Ask Codex to read this README, then run:
 
-```powershell
-cd C:\vscode
-git clone https://github.com/tonnyrh/OpenRouter-Skill-Overrides.git
-cd C:\vscode\OpenRouter-Skill-Overrides
-.\scripts\sync-codex.ps1
-.\scripts\check-codex.ps1
+```bash
+cd /path/to/OpenRouter-Skill-Overrides
+python scripts/sync.py --tool codex
+python scripts/check.py --tool codex
 ```
 
 For a minimal live GLM call:
 
-```powershell
-.\scripts\check-codex.ps1 -LiveGlm
+```bash
+python scripts/check.py --tool codex --live-glm
 ```
 
 Expected result:
 
 - syntax checks pass for repo and Codex runtime Python files
 - live model-advisor lookup recommends a current OpenRouter model, often `z-ai/glm-5.2` for heavy coding
-- optional `-LiveGlm` returns `OK`
+- optional `--live-glm` returns `OK`
 
 Codex runtime files installed:
 
 ```text
-%USERPROFILE%\.codex\skills\openrouter-glm52
-%USERPROFILE%\.codex\skills\openrouter-heavy-task-gate
-%USERPROFILE%\.codex\skills\openrouter-model-advisor
-%USERPROFILE%\.codex\skills\openrouter-flux2-pro
+~/.codex/skills/openrouter-glm52
+~/.codex/skills/openrouter-heavy-task-gate
+~/.codex/skills/openrouter-model-advisor
+~/.codex/skills/openrouter-flux2-pro
 ```
 
 ## Install For Claude Code
 
 Ask Claude Code to read this README, then run:
 
-```powershell
-cd C:\vscode
-git clone https://github.com/tonnyrh/OpenRouter-Skill-Overrides.git
-cd C:\vscode\OpenRouter-Skill-Overrides
-.\scripts\sync-claude.ps1
-.\scripts\check-claude.ps1
+```bash
+cd /path/to/OpenRouter-Skill-Overrides
+python scripts/sync.py --tool claude
+python scripts/check.py --tool claude
 ```
 
 For a minimal live GLM call:
 
-```powershell
-.\scripts\check-claude.ps1 -LiveGlm
+```bash
+python scripts/check.py --tool claude --live-glm
 ```
 
 For a billed live FLUX.2 Pro image call:
 
-```powershell
-.\scripts\check-claude.ps1 -LiveFlux
+```bash
+python scripts/check.py --tool claude --live-flux
 ```
 
-`-LiveFlux` generates one image and therefore must only be used when a billed image request is intended.
+For a billed live GPT-5 Image Mini call:
+
+```bash
+python scripts/check.py --tool claude --live-gpt5-image
+```
+
+`--live-flux` and `--live-gpt5-image` generate one image each and must only be used when a billed image request is intended.
 
 Claude Code runtime files installed:
 
 ```text
-%USERPROFILE%\.claude\skills\openrouter-glm52
-%USERPROFILE%\.claude\skills\openrouter-heavy-task-gate
-%USERPROFILE%\.claude\skills\openrouter-model-advisor
-%USERPROFILE%\.claude\skills\flux2pro
-%USERPROFILE%\.claude\commands\glm52.md
-%USERPROFILE%\.claude\commands\heavy-task-gate.md
+~/.claude/skills/openrouter-glm52
+~/.claude/skills/openrouter-heavy-task-gate
+~/.claude/skills/openrouter-model-advisor
+~/.claude/skills/flux2pro
+~/.claude/commands/glm52.md
+~/.claude/commands/heavy-task-gate.md
 ```
 
-Claude Code may also keep an upstream clone at:
-
-```text
-%USERPROFILE%\.claude\openrouter-skills
-```
-
-That upstream clone is separate. Update it from upstream, not from this repository.
+Claude Code may also keep an upstream clone at `~/.claude/openrouter-skills`. That clone is separate; update it from upstream, not from this repository.
 
 ## Updating An Existing Install
 
 From the source checkout:
 
-```powershell
-cd C:\vscode\OpenRouter-Skill-Overrides
+```bash
+cd /path/to/OpenRouter-Skill-Overrides
 git pull
-.\scripts\sync-codex.ps1
-.\scripts\check-codex.ps1
+python scripts/sync.py --tool codex
+python scripts/check.py --tool codex
 ```
 
 For Claude Code:
 
-```powershell
-cd C:\vscode\OpenRouter-Skill-Overrides
+```bash
 git pull
-.\scripts\sync-claude.ps1
-.\scripts\check-claude.ps1
+python scripts/sync.py --tool claude
+python scripts/check.py --tool claude
 ```
 
-Run both sync scripts only when the same machine uses both tools.
+Run both sync calls only when the same machine uses both tools.
 
 ## Development Workflow
 
 1. Edit files in this repository.
-2. Run the relevant sync script.
-3. Run the relevant check script.
-4. Commit and push.
+2. Sync and check.
+3. Commit and push.
 
-Codex:
-
-```powershell
-.\scripts\sync-codex.ps1
-.\scripts\check-codex.ps1
-git status
-git add .
-git commit -m "Describe the OpenRouter override change"
-git push
-```
-
-Claude Code:
-
-```powershell
-.\scripts\sync-claude.ps1
-.\scripts\check-claude.ps1
-git status
-git add .
-git commit -m "Describe the Claude OpenRouter override change"
+```bash
+python scripts/sync.py --tool claude   # or --tool codex
+python scripts/check.py --tool claude
+git add -p
+git commit -m "Describe the change"
 git push
 ```
 
 ## Notes On Current Local State
 
-Observed on this Windows machine:
-
-- Codex active skills live under `%USERPROFILE%\.codex\skills`.
-- Claude Code active skills live under `%USERPROFILE%\.claude\skills`.
-- Claude Code active slash commands live under `%USERPROFILE%\.claude\commands`.
-- Claude Code also has `%USERPROFILE%\.claude\openrouter-skills`, a separate upstream OpenRouterTeam/skills clone.
+- Codex active skills: `~/.codex/skills/`
+- Claude Code active skills: `~/.claude/skills/`
+- Claude Code active slash commands: `~/.claude/commands/`
+- Claude Code may also have `~/.claude/openrouter-skills/`, a separate upstream OpenRouterTeam/skills clone.
 
 This repository deliberately mirrors only the local custom layer. It does not vendor the full upstream OpenRouter skills tree.
 
@@ -260,9 +239,9 @@ The previous Claude-only setup note is archived at `docs/archive/claude-glm52-se
 
 ## Troubleshooting
 
-If `sync-*.ps1` fails with access denied, run it from Codex/Claude with filesystem approval or from a normal PowerShell session.
+If `sync.py` fails with a permission error, run it from a shell with appropriate filesystem access.
 
-If `check-*.ps1` fails with a network error, rerun it with network approval or verify that local proxy/firewall settings allow access to:
+If `check.py` fails with a network error, verify that your proxy/firewall allows access to:
 
 ```text
 https://openrouter.ai/api/v1/models
@@ -270,3 +249,5 @@ https://openrouter.ai/api/v1/chat/completions
 ```
 
 If GLM 5.2 returns empty text for a tiny prompt, increase `--max-tokens`. GLM may spend completion tokens on reasoning before normal message content. The local `call_glm52.py` handles `content: null` without printing `None`.
+
+If a chat-based image model (GPT-5 Image, Gemini Flash Image) returns `finish_reason=length`, increase `--max-tokens` above 8192. The script detects this and prints a clear error.
