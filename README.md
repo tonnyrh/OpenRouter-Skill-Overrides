@@ -39,6 +39,9 @@ OpenRouter-Skill-Overrides/
     check-codex.ps1
     sync-claude.ps1
     check-claude.ps1
+  docs/
+    archive/
+      claude-glm52-setup-note.md
 ```
 
 Shared code lives in `skills/`, but not every skill is installed into every runtime. The sync scripts decide what is safe for each tool.
@@ -242,6 +245,8 @@ Observed on this Windows machine:
 - Claude Code also has `%USERPROFILE%\.claude\openrouter-skills`, a separate upstream OpenRouterTeam/skills clone.
 
 This repository deliberately mirrors only the local custom layer. It does not vendor the full upstream OpenRouter skills tree.
+
+The previous Claude-only setup note is archived at `docs/archive/claude-glm52-setup-note.md`. It is retained as migration context only; use this README for installation.
 
 ## Troubleshooting
 
