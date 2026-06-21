@@ -5,7 +5,7 @@ description: Generate images and game graphics using FLUX.2 Pro through OpenRout
 
 # FLUX.2 Pro Image Generation
 
-Generate high-quality images and game graphics using Black Forest Labs' FLUX.2 Pro model through OpenRouter's images API.
+Generate high-quality images and game graphics using Black Forest Labs' FLUX.2 Pro model through OpenRouter chat completions with image output.
 
 ## Prerequisites
 
@@ -13,8 +13,8 @@ The `OPENROUTER_API_KEY` environment variable must be set. Get a key at https://
 
 ## Model
 
-- Default: `black-forest-labs/flux-2-pro`
-- Fallback/check models: `black-forest-labs/flux-1.1-pro`, `black-forest-labs/flux-pro`
+- Default: `black-forest-labs/flux.2-pro`
+- Verify alternatives with the model advisor before switching models.
 - Verify available FLUX models: use the `openrouter-models` skill or check https://openrouter.ai/models?q=flux
 
 ## Quick Start
@@ -41,13 +41,13 @@ Use `--preset` to inject optimized style tokens for common game art types:
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "knight warrior in armor" --preset sprite
 
 # Level background
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "dark forest with glowing mushrooms" --preset background --width 1920 --height 1080
+python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "dark forest with glowing mushrooms" --preset background --aspect-ratio 16:9
 
 # Seamless ground texture
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "mossy stone bricks" --preset texture
 
 # Inventory icon
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "health potion red bottle" --preset icon --width 512 --height 512
+python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "health potion red bottle" --preset icon --aspect-ratio 1:1 --image-size 0.5K
 ```
 
 ## All Options
@@ -56,25 +56,26 @@ python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "heal
 Usage: generate_flux.py "prompt" [options]
 
 Options:
-  --model <id>        OpenRouter model ID (default: black-forest-labs/flux-2-pro)
+  --model <id>        OpenRouter model ID (default: black-forest-labs/flux.2-pro)
   --output <path>     Output file path (default: flux-YYYYMMDD-HHmmss.png)
-  --width <px>        Image width in pixels (default: 1024)
-  --height <px>       Image height in pixels (default: 1024)
-  --steps <n>         Inference steps (default: model default)
+  --aspect-ratio      Requested ratio, for example 1:1 or 16:9
+  --image-size        Requested size: 0.5K, 1K, 2K, or 4K
+  --seed <n>          Optional deterministic seed
   --preset <name>     Game art preset: sprite|background|texture|icon|concept|portrait
-  --n <count>         Number of images to generate (default: 1)
-  --json              Print raw JSON API response
+  --n <count>         Number of separate generation calls (default: 1)
+  --json              Save raw response JSON beside each image
 ```
 
-## Common Sizes
+## Common Ratios
 
-| Use case | Width × Height |
+| Use case | Aspect ratio |
 |---|---|
-| Square (sprite, icon) | 1024 × 1024 |
-| HD background | 1920 × 1080 |
-| Portrait | 768 × 1024 |
-| Wide banner | 1536 × 640 |
-| Texture (power of 2) | 512 × 512 or 1024 × 1024 |
+| Square (sprite, icon, texture) | `1:1` |
+| Wide background | `16:9` |
+| Portrait | `3:4` or `9:16` |
+| Wide banner | `21:9` |
+
+Requested `image_size` is provider-dependent. Inspect the saved file instead of assuming the returned pixel dimensions.
 
 ## Workflow
 
@@ -86,13 +87,15 @@ Options:
 
 ## API Details
 
-Uses `POST https://openrouter.ai/api/v1/images/generations` (OpenAI-compatible images endpoint).
+Uses `POST https://openrouter.ai/api/v1/chat/completions` with `modalities: ["image"]`.
 
 Response shape:
 ```json
 {
-  "data": [
-    { "b64_json": "<base64>" }
-  ]
+  "choices": [{
+    "message": {
+      "images": [{ "image_url": { "url": "data:image/png;base64,..." } }]
+    }
+  }]
 }
 ```

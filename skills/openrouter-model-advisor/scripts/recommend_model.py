@@ -115,13 +115,12 @@ def price_per_million(model: dict) -> dict[str, float]:
 def blended_cost(model: dict, mode: str) -> float:
     prices = price_per_million(model)
     if not prices:
-        return 0.0
+        return float("inf")
     if mode in {"image", "image-edit", "vision"}:
-        if "image" in prices and prices["image"] > 0:
-            return prices["image"]
-        prompt = prices.get("prompt", 0.0)
-        completion = prices.get("completion", 0.0)
-        return prompt * 1000 + completion * 1000
+        relevant = [prices.get("prompt", 0.0), prices.get("completion", 0.0), prices.get("image", 0.0)]
+        if not any(value > 0 for value in relevant) and not str(model.get("id", "")).endswith(":free"):
+            return float("inf")
+        return prices.get("prompt", 0.0) + prices.get("completion", 0.0) * 2 + prices.get("image", 0.0)
     return prices.get("prompt", 0.0) + prices.get("completion", 0.0) * 2
 
 
@@ -132,10 +131,10 @@ def supports_mode(model: dict, mode: str) -> bool:
     if mode in {"image", "image-edit"}:
         return "image" in outputs and (mode == "image" or "image" in inputs)
     if mode == "vision":
-        return "image" in inputs
+        return "image" in inputs and outputs == {"text"}
     if mode in {"coding", "long-context", "reasoning"}:
         return "text" in inputs and (not outputs or outputs == {"text"})
-    return "text" in inputs and ("text" in outputs or not outputs)
+    return "text" in inputs and outputs == {"text"}
 
 
 def project_preference(project_prefs: dict, project: str | None, mode: str) -> dict | None:
@@ -174,7 +173,7 @@ def quality_bonus(model: dict, mode: str, model_notes: dict, pref: dict | None) 
 
 def score_model(model: dict, mode: str, priority: str, model_notes: dict, pref: dict | None, max_cost: float) -> float:
     cost = blended_cost(model, mode)
-    normalized_cost = (cost / max_cost) if max_cost > 0 else 0.0
+    normalized_cost = (cost / max_cost) if max_cost > 0 and cost != float("inf") else 1.0
     context = min(float(model.get("context_length") or 0) / 1_000_000, 1.0)
     params = set(model.get("supported_parameters") or [])
     param_bonus = 0.0
@@ -187,15 +186,20 @@ def score_model(model: dict, mode: str, priority: str, model_notes: dict, pref: 
 
     quality = quality_bonus(model, mode, model_notes, pref) + context * 4 + param_bonus
     if priority == "cost":
-        return quality * 0.35 - normalized_cost * 60
+        if cost == float("inf"):
+            return -1_000_000 + quality * 0.01
+        return -cost + min(quality, 20.0) * 0.01
     if priority == "quality":
         return quality * 1.4 - normalized_cost * 15
     return quality - normalized_cost * 30
 
 
 def format_price(model: dict, mode: str) -> dict:
+    metric = blended_cost(model, mode)
     return {
-        "blended_cost_metric": round(blended_cost(model, mode), 6),
+        "comparison_metric": None if metric == float("inf") else round(metric, 6),
+        "comparison_basis": "estimated token mix; not a guaranteed per-request price",
+        "confidence": "limited" if mode in {"image", "image-edit", "vision"} else "standard",
         "per_million": {k: round(v, 6) for k, v in price_per_million(model).items()},
     }
 
@@ -230,11 +234,16 @@ def main() -> int:
     pref = project_preference(project_prefs, args.project, mode)
     models, live_source = fetch_models(args.models_json)
 
-    candidates = [model for model in models if supports_mode(model, mode)]
+    candidates = [
+        model
+        for model in models
+        if supports_mode(model, mode) and not str(model.get("id", "")).startswith("openrouter/")
+    ]
     if not candidates:
         raise SystemExit(f"No OpenRouter models matched mode={mode}.")
 
-    max_cost = max(blended_cost(model, mode) for model in candidates) or 1.0
+    finite_costs = [cost for model in candidates if (cost := blended_cost(model, mode)) != float("inf")]
+    max_cost = max(finite_costs) if finite_costs else 1.0
     ranked = sorted(
         candidates,
         key=lambda model: score_model(model, mode, priority, model_notes, pref, max_cost),

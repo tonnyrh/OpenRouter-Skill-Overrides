@@ -7,7 +7,8 @@ $codexSkills = Join-Path $env:USERPROFILE ".codex\skills"
 $skills = @(
     "openrouter-glm52",
     "openrouter-heavy-task-gate",
-    "openrouter-model-advisor"
+    "openrouter-model-advisor",
+    "openrouter-flux2-pro"
 )
 
 foreach ($skill in $skills) {

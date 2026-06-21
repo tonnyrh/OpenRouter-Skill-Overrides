@@ -29,6 +29,7 @@ OpenRouter-Skill-Overrides/
     openrouter-glm52/
     openrouter-heavy-task-gate/
     openrouter-model-advisor/
+    openrouter-flux2-pro/
     flux2pro/
   claude/
     commands/
@@ -50,7 +51,7 @@ Claude Code slash commands live in `claude/commands/` because Codex does not use
 
 The `scripts/` directory contains separate installers/checks for each runtime. Codex scripts only write to `.codex`. Claude scripts only write to `.claude`.
 
-`skills/flux2pro` is a legacy Claude Code image-generation helper with the Claude skill name `flux2pro`. It is installed by `sync-claude.ps1` only. Codex has a separate active skill named `openrouter-flux2-pro`, so `sync-codex.ps1` deliberately does not install `flux2pro`.
+`skills/openrouter-flux2-pro` is the active Codex image skill. `skills/flux2pro` is the Claude Code compatibility variant with the older Claude skill name `flux2pro`; both use the same current OpenRouter API contract.
 
 ## Runtime Separation
 
@@ -145,6 +146,7 @@ Codex runtime files installed:
 %USERPROFILE%\.codex\skills\openrouter-glm52
 %USERPROFILE%\.codex\skills\openrouter-heavy-task-gate
 %USERPROFILE%\.codex\skills\openrouter-model-advisor
+%USERPROFILE%\.codex\skills\openrouter-flux2-pro
 ```
 
 ## Install For Claude Code
@@ -164,6 +166,14 @@ For a minimal live GLM call:
 ```powershell
 .\scripts\check-claude.ps1 -LiveGlm
 ```
+
+For a billed live FLUX.2 Pro image call:
+
+```powershell
+.\scripts\check-claude.ps1 -LiveFlux
+```
+
+`-LiveFlux` generates one image and therefore must only be used when a billed image request is intended.
 
 Claude Code runtime files installed:
 

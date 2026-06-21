@@ -1,4 +1,14 @@
 {
+  "global_preferences": [
+    {
+      "task_family": "text-coding-analysis",
+      "preferred_model": "z-ai/glm-5.2",
+      "confidence": "medium",
+      "evidence_type": "local_user_preference",
+      "summary": "Prefer GLM 5.2 as a sensible fallback for text, coding, long-context, and analysis when no cheaper, specialized, or project-specific model is clearly better.",
+      "source": "User instruction in Codex session on 2026-06-20"
+    }
+  ],
   "projects": {
     "NumberQuest": {
       "notes": [
