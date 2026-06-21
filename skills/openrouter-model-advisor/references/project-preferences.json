@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "NumberQuest": {
+      "notes": [
+        {
+          "task_family": "image",
+          "preferred_model": "openai/gpt-5-image",
+          "alternatives": ["black-forest-labs/flux.2-pro"],
+          "confidence": "medium",
+          "evidence_type": "local_project_observation",
+          "summary": "Local NumberQuest testing found GPT-5 Image produced better game image results than FLUX.2 Pro. Prefer it for final image assets when quality matters, but compare current OpenRouter pricing before use.",
+          "source": "User observation in Codex session on 2026-06-20"
+        }
+      ]
+    }
+  }
+}

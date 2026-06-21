@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenRouter Model Advisor"
+  short_description: "Choose cost-aware OpenRouter models"
+  default_prompt: "Use $openrouter-model-advisor to recommend the best OpenRouter model for this task with cost and quality tradeoffs."

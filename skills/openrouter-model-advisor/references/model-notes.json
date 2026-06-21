@@ -1,0 +1,42 @@
+{
+  "models": {
+    "openai/gpt-5-image": {
+      "quality_tier": "premium",
+      "task_strengths": ["image", "image-edit", "vision"],
+      "notes": [
+        {
+          "evidence_type": "openrouter_model_metadata",
+          "summary": "OpenRouter lists GPT-5 Image as text+image+file input to text+image output.",
+          "source": "https://openrouter.ai/api/v1/models"
+        },
+        {
+          "evidence_type": "local_project_observation",
+          "summary": "Preferred for NumberQuest final image assets based on local comparison against FLUX.2 Pro.",
+          "source": "references/project-preferences.json"
+        }
+      ]
+    },
+    "black-forest-labs/flux.2-pro": {
+      "quality_tier": "premium",
+      "task_strengths": ["image", "image-edit"],
+      "notes": [
+        {
+          "evidence_type": "openrouter_model_metadata",
+          "summary": "OpenRouter lists FLUX.2 Pro as text+image input to image output and supports seed.",
+          "source": "https://openrouter.ai/api/v1/models"
+        }
+      ]
+    },
+    "z-ai/glm-5.2": {
+      "quality_tier": "premium",
+      "task_strengths": ["coding", "long-context", "analysis"],
+      "notes": [
+        {
+          "evidence_type": "openrouter_model_metadata",
+          "summary": "Local OpenRouter GLM skill uses GLM 5.2 for long-context coding, repository analysis, and second-pass review.",
+          "source": "C:/Users/TonnyRogerHolm(Test)/.codex/skills/openrouter-glm52/SKILL.md"
+        }
+      ]
+    }
+  }
+}
