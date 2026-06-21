@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate images with FLUX.2 Pro through OpenRouter using the standard library."""
+"""Generate images via OpenRouter — FLUX.2 Pro and chat-based image models (standard library only)."""
 
 from __future__ import annotations
 
@@ -16,16 +16,27 @@ import urllib.request
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "black-forest-labs/flux.2-pro"
+# Minimum max_tokens for chat-based image models.  Lower values cause finish_reason=length
+# before the image is emitted (observed with openai/gpt-5-image-mini at 1024).
+CHAT_IMAGE_MAX_TOKENS = 8192
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate an image with FLUX.2 Pro via OpenRouter.")
+    parser = argparse.ArgumentParser(
+        description="Generate images via OpenRouter (FLUX.2 Pro and chat-based image models)."
+    )
     parser.add_argument("prompt", nargs="*", help="Image prompt. If omitted, stdin is used.")
-    parser.add_argument("--output", "-o", default="flux2-pro-output.png", help="Output image path.")
+    parser.add_argument("--output", "-o", default="image-output.png", help="Output image path.")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="OpenRouter model slug.")
     parser.add_argument("--aspect-ratio", default=None, help="Optional aspect ratio, e.g. 1:1, 16:9, 9:16.")
-    parser.add_argument("--image-size", default=None, choices=["0.5K", "1K", "2K", "4K"], help="Optional image size.")
-    parser.add_argument("--seed", type=int, default=None, help="Optional deterministic seed.")
+    parser.add_argument("--image-size", default=None, choices=["0.5K", "1K", "2K", "4K"])
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=CHAT_IMAGE_MAX_TOKENS,
+        help=f"max_tokens for chat-based image models (default {CHAT_IMAGE_MAX_TOKENS}). Ignored for FLUX-style models.",
+    )
     parser.add_argument(
         "--reference",
         action="append",
@@ -34,6 +45,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--json", action="store_true", help="Write raw JSON response next to the output image.")
     return parser.parse_args()
+
+
+def is_flux_style(model_id: str) -> bool:
+    """FLUX and similar dedicated image models use modalities payload.
+    Chat-based image models (GPT-5 Image, Gemini Flash Image, etc.) use max_tokens instead."""
+    slug = model_id.lower()
+    return "flux" in slug or "recraft" in slug or slug.startswith("black-forest-labs/")
 
 
 def build_prompt(parts: list[str]) -> str:
@@ -63,12 +81,44 @@ def build_message_content(prompt: str, references: list[str]) -> str | list[dict
     return content
 
 
+def build_payload(model: str, prompt: str, references: list[str], aspect_ratio: str | None,
+                  image_size: str | None, seed: int | None, max_tokens: int) -> dict:
+    payload: dict[str, object] = {
+        "model": model,
+        "messages": [{"role": "user", "content": build_message_content(prompt, references)}],
+        "stream": False,
+    }
+    if is_flux_style(model):
+        payload["modalities"] = ["image"]
+        image_config: dict[str, object] = {}
+        if aspect_ratio:
+            image_config["aspect_ratio"] = aspect_ratio
+        if image_size:
+            image_config["image_size"] = image_size
+        if image_config:
+            payload["image_config"] = image_config
+    else:
+        # Chat-based image model: GPT-5 Image, Gemini Flash Image, etc.
+        # These return the image in choices[0].message.images[0].image_url.url (base64).
+        # content is null; finish_reason=length if max_tokens is too low.
+        payload["max_tokens"] = max_tokens
+    if seed is not None:
+        payload["seed"] = seed
+    return payload
+
+
 def extract_image_url(data: dict[str, object]) -> str:
+    finish = None
     try:
-        message = data["choices"][0]["message"]  # type: ignore[index]
-        images = message["images"]  # type: ignore[index]
-        first_image = images[0]  # type: ignore[index]
+        choice = data["choices"][0]  # type: ignore[index]
+        finish = choice.get("finish_reason") or choice.get("native_finish_reason")
+        message = choice["message"]  # type: ignore[index]
+        first_image = message["images"][0]  # type: ignore[index]
     except (KeyError, IndexError, TypeError) as exc:
+        if finish in {"length", "max_output_tokens"}:
+            raise SystemExit(
+                "Generation cut off: finish_reason=length. Increase --max-tokens and retry."
+            ) from exc
         raise SystemExit("No image found in response:\n" + json.dumps(data, indent=2, ensure_ascii=False)) from exc
 
     if not isinstance(first_image, dict):
@@ -98,27 +148,11 @@ def main() -> int:
     if not api_key:
         raise SystemExit("OPENROUTER_API_KEY is not set.")
 
-    payload: dict[str, object] = {
-        "model": args.model,
-        "messages": [
-            {
-                "role": "user",
-                "content": build_message_content(build_prompt(args.prompt), args.reference),
-            }
-        ],
-        "modalities": ["image"],
-        "stream": False,
-    }
-
-    image_config: dict[str, object] = {}
-    if args.aspect_ratio:
-        image_config["aspect_ratio"] = args.aspect_ratio
-    if args.image_size:
-        image_config["image_size"] = args.image_size
-    if image_config:
-        payload["image_config"] = image_config
-    if args.seed is not None:
-        payload["seed"] = args.seed
+    prompt = build_prompt(args.prompt)
+    payload = build_payload(
+        args.model, prompt, args.reference,
+        args.aspect_ratio, args.image_size, args.seed, args.max_tokens,
+    )
 
     request = urllib.request.Request(
         API_URL,
@@ -127,11 +161,10 @@ def main() -> int:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://openai.com/codex",
-            "X-Title": "Codex OpenRouter FLUX.2 Pro Skill",
+            "X-Title": "Codex OpenRouter Image Generation Skill",
         },
         method="POST",
     )
-
     try:
         with urllib.request.urlopen(request, timeout=300) as response:
             data = json.loads(response.read().decode("utf-8"))

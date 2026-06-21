@@ -3,6 +3,11 @@
     "openai/gpt-5-image": {
       "quality_tier": "premium",
       "task_strengths": ["image", "image-edit", "vision"],
+      "api_contract": {
+        "payload_style": "chat_max_tokens",
+        "max_tokens_min": 8192,
+        "notes": "Do NOT set modalities. Image data is in choices[0].message.images[0].image_url.url (base64 data URL). message.content is null. finish_reason=length means max_tokens was too low — increase and retry."
+      },
       "notes": [
         {
           "evidence_type": "openrouter_model_metadata",
@@ -16,9 +21,29 @@
         }
       ]
     },
+    "openai/gpt-5-image-mini": {
+      "quality_tier": "standard",
+      "task_strengths": ["image", "image-edit", "vision"],
+      "api_contract": {
+        "payload_style": "chat_max_tokens",
+        "max_tokens_min": 8192,
+        "notes": "Do NOT set modalities. Image data is in choices[0].message.images[0].image_url.url (base64 data URL). message.content is null. finish_reason=length means max_tokens was too low — increase and retry. Response body ~2MB due to encrypted reasoning blob."
+      },
+      "notes": [
+        {
+          "evidence_type": "local_live_call_observation",
+          "summary": "Verified 2026-06-21: max_tokens=1024 caused finish_reason=length with no image. max_tokens=8192 succeeded. Image returned in message.images[0], not message.content.",
+          "source": "Claude Code session tonnyrh/OpenRouter-Skill-Overrides"
+        }
+      ]
+    },
     "black-forest-labs/flux.2-pro": {
       "quality_tier": "premium",
       "task_strengths": ["image", "image-edit"],
+      "api_contract": {
+        "payload_style": "flux_modalities",
+        "notes": "Use modalities: [\"image\"] and optional image_config for aspect_ratio/image_size. Do NOT set max_tokens. Image data is in choices[0].message.images[0].image_url.url (data URL or remote URL). seed is supported."
+      },
       "notes": [
         {
           "evidence_type": "openrouter_model_metadata",

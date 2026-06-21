@@ -1,52 +1,58 @@
 ---
 name: flux2pro
-description: Generate images and game graphics using FLUX.2 Pro through OpenRouter. Use when the user wants to create game sprites, backgrounds, textures, concept art, UI icons, or any high-quality image generation with FLUX.2 Pro. Trigger on mentions of FLUX, FLUX.2, FLUX Pro, Black Forest Labs, game graphics generation, sprite generation, game art, or when the user wants photorealistic or artistic image generation distinct from Gemini-based image tools.
+description: Generate images and game graphics via OpenRouter. Supports FLUX.2 Pro (Black Forest Labs) and chat-based image models (GPT-5 Image, GPT-5 Image Mini, Gemini Flash Image). Use when the user wants game sprites, backgrounds, textures, concept art, UI icons, or any image generation through OpenRouter. Trigger on mentions of FLUX, FLUX.2, FLUX Pro, GPT-5 Image, Gemini image, game graphics, sprite generation, or image generation via OpenRouter.
 ---
 
-# FLUX.2 Pro Image Generation
+# OpenRouter Image Generation
 
-Generate high-quality images and game graphics using Black Forest Labs' FLUX.2 Pro model through OpenRouter chat completions with image output.
+Generate high-quality images using FLUX.2 Pro or chat-based image models (GPT-5 Image, Gemini Flash Image, etc.) through OpenRouter.
 
 ## Prerequisites
 
-The `OPENROUTER_API_KEY` environment variable must be set. Get a key at https://openrouter.ai/keys
+`OPENROUTER_API_KEY` must be set. Get a key at https://openrouter.ai/keys
 
-## Model
+## Model Families
 
-- Default: `black-forest-labs/flux.2-pro`
-- Verify alternatives with the model advisor before switching models.
-- Verify available FLUX models: use the `openrouter-models` skill or check https://openrouter.ai/models?q=flux
+Two payload styles — the script detects automatically from the model ID:
+
+| Family | Example models | Payload style |
+|---|---|---|
+| FLUX-style | `black-forest-labs/flux.2-pro`, Recraft models | `modalities: ["image"]` + optional `image_config` |
+| Chat-based | `openai/gpt-5-image`, `openai/gpt-5-image-mini`, `google/gemini-2.5-flash-image` | `max_tokens: 8192` (minimum) |
+
+Both families return the image in `choices[0].message.images[0].image_url.url` (base64 data URL).
+
+**Chat-based models:** `message.content` is null. `finish_reason=length` means `max_tokens` was too low — the default 8192 avoids this. Response bodies are larger (~2 MB) due to encrypted reasoning.
 
 ## Quick Start
 
 ```powershell
+# FLUX.2 Pro (default)
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "a glowing crystal sword on a dark background"
+
+# GPT-5 Image Mini
+python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "a cute Smurf, blue skin, white hat, cheerful cartoon style" --model openai/gpt-5-image-mini
+
+# GPT-5 Image (premium)
+python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "NumberQuest game icon, precise text, clean cartoon style" --model openai/gpt-5-image
 ```
 
-## Game Graphics Presets
+## Game Graphics Presets (FLUX-style models)
 
 Use `--preset` to inject optimized style tokens for common game art types:
 
-| Preset | Best for | Auto-appended style |
-|---|---|---|
-| `sprite` | Characters, items, enemies | pixel art, transparent background, game sprite, centered, clean outline |
-| `background` | Scene/level backgrounds | wide panoramic, game environment, detailed, atmospheric |
-| `texture` | Materials, surfaces | seamless tileable texture, top-down view, no seams |
-| `icon` | UI, HUD, inventory items | game UI icon, simple, readable at small size, flat design |
-| `concept` | Concept art, world design | concept art, game world, detailed illustration, professional |
-| `portrait` | Character portraits, NPCs | character portrait, detailed face, game art style, bust shot |
+| Preset | Best for |
+|---|---|
+| `sprite` | Characters, items, enemies |
+| `background` | Scene/level backgrounds |
+| `texture` | Materials, surfaces |
+| `icon` | UI, HUD, inventory items |
+| `concept` | Concept art, world design |
+| `portrait` | Character portraits, NPCs |
 
 ```powershell
-# Game sprite
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "knight warrior in armor" --preset sprite
-
-# Level background
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "dark forest with glowing mushrooms" --preset background --aspect-ratio 16:9
-
-# Seamless ground texture
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "mossy stone bricks" --preset texture
-
-# Inventory icon
 python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "health potion red bottle" --preset icon --aspect-ratio 1:1 --image-size 0.5K
 ```
 
@@ -57,9 +63,10 @@ Usage: generate_flux.py "prompt" [options]
 
 Options:
   --model <id>        OpenRouter model ID (default: black-forest-labs/flux.2-pro)
-  --output <path>     Output file path (default: flux-YYYYMMDD-HHmmss.png)
-  --aspect-ratio      Requested ratio, for example 1:1 or 16:9
-  --image-size        Requested size: 0.5K, 1K, 2K, or 4K
+  --output <path>     Output file path (default: image-YYYYMMDD-HHmmss.png)
+  --aspect-ratio      Requested ratio, e.g. 1:1 or 16:9 (FLUX-style only)
+  --image-size        Requested size: 0.5K, 1K, 2K, or 4K (FLUX-style only)
+  --max-tokens <n>    max_tokens for chat-based models (default: 8192, minimum safe value)
   --seed <n>          Optional deterministic seed
   --preset <name>     Game art preset: sprite|background|texture|icon|concept|portrait
   --n <count>         Number of separate generation calls (default: 1)
@@ -75,25 +82,23 @@ Options:
 | Portrait | `3:4` or `9:16` |
 | Wide banner | `21:9` |
 
-Requested `image_size` is provider-dependent. Inspect the saved file instead of assuming the returned pixel dimensions.
-
 ## Workflow
 
-1. Check `OPENROUTER_API_KEY` is set before calling.
-2. Choose a preset for game art — presets significantly improve relevance of output.
-3. Describe subject clearly; FLUX excels at photorealistic and painterly styles.
-4. For sprites: follow up with a background-removal tool if needed (FLUX does not natively remove backgrounds).
-5. Display the saved image to the user and report the output path.
+1. Check `OPENROUTER_API_KEY` is set.
+2. Use `openrouter-model-advisor` if model choice is non-obvious — it knows pricing and quality tiers for both FLUX and chat-based image models.
+3. Choose a preset for game art (FLUX-style models only).
+4. Display the saved image to the user and report the output path.
 
 ## API Details
 
-Uses `POST https://openrouter.ai/api/v1/chat/completions` with `modalities: ["image"]`.
+All calls go to `POST https://openrouter.ai/api/v1/chat/completions`.
 
-Response shape:
+Response shape (same for all models):
 ```json
 {
   "choices": [{
     "message": {
+      "content": null,
       "images": [{ "image_url": { "url": "data:image/png;base64,..." } }]
     }
   }]

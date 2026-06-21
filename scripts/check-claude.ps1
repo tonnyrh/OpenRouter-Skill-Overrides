@@ -1,6 +1,7 @@
 param(
     [switch]$LiveGlm,
-    [switch]$LiveFlux
+    [switch]$LiveFlux,
+    [switch]$LiveGpt5Image
 )
 
 Set-StrictMode -Version Latest
@@ -83,4 +84,17 @@ if ($LiveFlux) {
         throw "FLUX live check did not create $fluxOutput"
     }
     Write-Host "FLUX live check OK: $fluxOutput"
+}
+
+if ($LiveGpt5Image) {
+    $gptOutput = Join-Path $env:TEMP "claude-gpt5-image-mini-live-check.png"
+    python (Join-Path $claudeSkills "flux2pro\scripts\generate_flux.py") `
+        "A tiny blue circle on a white background" `
+        --model openai/gpt-5-image-mini `
+        --output $gptOutput
+
+    if (-not (Test-Path -LiteralPath $gptOutput)) {
+        throw "GPT-5 Image Mini live check did not create $gptOutput"
+    }
+    Write-Host "GPT-5 Image Mini live check OK: $gptOutput"
 }

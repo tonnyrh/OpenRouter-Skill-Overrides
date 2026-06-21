@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate images with FLUX.2 Pro through OpenRouter chat completions."""
+"""Generate images via OpenRouter chat completions — FLUX.2 Pro and chat-based image models."""
 
 from __future__ import annotations
 
@@ -16,6 +16,9 @@ import urllib.request
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "black-forest-labs/flux.2-pro"
+# Minimum max_tokens for chat-based image models.  Lower values cause finish_reason=length
+# before the image is emitted (observed with openai/gpt-5-image-mini at 1024).
+CHAT_IMAGE_MAX_TOKENS = 8192
 
 PRESETS: dict[str, str] = {
     "sprite": "pixel art, game sprite, centered subject, clean outline, no background clutter",
@@ -28,19 +31,34 @@ PRESETS: dict[str, str] = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate images with FLUX.2 Pro via OpenRouter.")
+    parser = argparse.ArgumentParser(
+        description="Generate images via OpenRouter (FLUX.2 Pro and chat-based image models)."
+    )
     parser.add_argument("prompt", nargs="*", help="Image prompt. If omitted, read stdin.")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--output", default=None, help="Output path; timestamped PNG by default.")
     parser.add_argument("--aspect-ratio", default=None, help="Optional ratio such as 1:1, 16:9, or 9:16.")
     parser.add_argument("--image-size", choices=["0.5K", "1K", "2K", "4K"], default=None)
-    parser.add_argument("--width", type=int, default=None, help="Deprecated compatibility option; used to infer aspect ratio.")
-    parser.add_argument("--height", type=int, default=None, help="Deprecated compatibility option; used to infer aspect ratio.")
+    parser.add_argument("--width", type=int, default=None, help="Compatibility: used to infer aspect ratio.")
+    parser.add_argument("--height", type=int, default=None, help="Compatibility: used to infer aspect ratio.")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--preset", choices=list(PRESETS), default=None)
     parser.add_argument("--n", type=int, default=1, help="Number of separate generation calls.")
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=CHAT_IMAGE_MAX_TOKENS,
+        help=f"max_tokens for chat-based image models (default {CHAT_IMAGE_MAX_TOKENS}). Ignored for FLUX-style models.",
+    )
     parser.add_argument("--json", action="store_true", help="Write raw response JSON beside each image.")
     return parser.parse_args()
+
+
+def is_flux_style(model_id: str) -> bool:
+    """FLUX and similar dedicated image models use modalities payload.
+    Chat-based image models (GPT-5 Image, Gemini Flash Image, etc.) use max_tokens instead."""
+    slug = model_id.lower()
+    return "flux" in slug or "recraft" in slug or slug.startswith("black-forest-labs/")
 
 
 def build_prompt(parts: list[str], preset: str | None) -> str:
@@ -54,7 +72,7 @@ def build_prompt(parts: list[str], preset: str | None) -> str:
 
 def default_output_path() -> Path:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    return Path(f"flux-{stamp}.png").resolve()
+    return Path(f"image-{stamp}.png").resolve()
 
 
 def inferred_ratio(width: int | None, height: int | None) -> str | None:
@@ -65,6 +83,32 @@ def inferred_ratio(width: int | None, height: int | None) -> str | None:
     return min(choices, key=lambda key: abs(choices[key] - ratio))
 
 
+def build_payload(model: str, prompt: str, aspect_ratio: str | None, image_size: str | None,
+                  seed: int | None, max_tokens: int) -> dict:
+    payload: dict[str, object] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+    }
+    if is_flux_style(model):
+        payload["modalities"] = ["image"]
+        image_config: dict[str, str] = {}
+        if aspect_ratio:
+            image_config["aspect_ratio"] = aspect_ratio
+        if image_size:
+            image_config["image_size"] = image_size
+        if image_config:
+            payload["image_config"] = image_config
+    else:
+        # Chat-based image model: GPT-5 Image, Gemini Flash Image, etc.
+        # These return the image in choices[0].message.images[0].image_url.url (base64).
+        # content is null; finish_reason=length if max_tokens is too low.
+        payload["max_tokens"] = max_tokens
+    if seed is not None:
+        payload["seed"] = seed
+    return payload
+
+
 def call_api(api_key: str, payload: dict) -> dict:
     request = urllib.request.Request(
         API_URL,
@@ -73,7 +117,7 @@ def call_api(api_key: str, payload: dict) -> dict:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://claude.ai/code",
-            "X-Title": "Claude Code FLUX.2 Pro Skill",
+            "X-Title": "Claude Code Image Generation Skill",
         },
         method="POST",
     )
@@ -88,9 +132,16 @@ def call_api(api_key: str, payload: dict) -> dict:
 
 
 def extract_image_url(data: dict) -> str:
+    finish = None
     try:
-        first = data["choices"][0]["message"]["images"][0]
+        choice = data["choices"][0]
+        finish = choice.get("finish_reason") or choice.get("native_finish_reason")
+        first = choice["message"]["images"][0]
     except (KeyError, IndexError, TypeError) as exc:
+        if finish in {"length", "max_output_tokens"}:
+            raise SystemExit(
+                "Generation cut off: finish_reason=length. Increase --max-tokens and retry."
+            ) from exc
         raise SystemExit("No image found in response:\n" + json.dumps(data, indent=2, ensure_ascii=False)) from exc
     image_obj = first.get("image_url") or first.get("imageUrl")
     if isinstance(image_obj, dict) and isinstance(image_obj.get("url"), str):
@@ -127,22 +178,8 @@ def main() -> int:
     saved: list[str] = []
 
     for index in range(args.n):
-        payload: dict[str, object] = {
-            "model": args.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "modalities": ["image"],
-            "stream": False,
-        }
-        image_config: dict[str, str] = {}
-        if aspect_ratio:
-            image_config["aspect_ratio"] = aspect_ratio
-        if args.image_size:
-            image_config["image_size"] = args.image_size
-        if image_config:
-            payload["image_config"] = image_config
-        if args.seed is not None:
-            payload["seed"] = args.seed + index
-
+        seed = args.seed + index if args.seed is not None else None
+        payload = build_payload(args.model, prompt, aspect_ratio, args.image_size, seed, args.max_tokens)
         data = call_api(api_key, payload)
         output_path = indexed_path(output_base, index, args.n)
         save_image(extract_image_url(data), output_path)
