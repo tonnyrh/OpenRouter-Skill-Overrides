@@ -1,6 +1,6 @@
 ---
 name: openrouter-pdf-extract
-description: Extract text from PDF files using OpenRouter multimodal models. Use when the user wants to convert a PDF document to plain text, extract structured content from product lists, invoices, or reports, or process large PDF files programmatically. Default model is google/gemini-2.5-flash-lite (native PDF input, 1M context, $0.10/M — 12× cheaper than GLM 5.2 for this task).
+description: Extract text from PDF files using OpenRouter multimodal models when local text extraction is insufficient or native PDF model input is useful. Use when the user wants to convert a PDF document to plain text, extract structured content from product lists, invoices, or reports, or process large PDF files programmatically. This is not a coding offload skill; keep routine code edits on ollama-worker.
 ---
 
 # OpenRouter PDF Text Extraction
@@ -15,13 +15,13 @@ Extract text from PDF files using Gemini Flash Lite or any OpenRouter model with
 
 ```bash
 # Basic: print extracted text to stdout
-python ~/.claude/skills/openrouter-pdf-extract/scripts/extract_pdf.py "document.pdf"
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-pdf-extract\scripts\extract_pdf.py" "document.pdf"
 
 # Save to file
-python ~/.claude/skills/openrouter-pdf-extract/scripts/extract_pdf.py "document.pdf" --output extracted.txt
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-pdf-extract\scripts\extract_pdf.py" "document.pdf" --output extracted.txt
 
 # Higher quality for complex layouts
-python ~/.claude/skills/openrouter-pdf-extract/scripts/extract_pdf.py "document.pdf" \
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-pdf-extract\scripts\extract_pdf.py" "document.pdf" `
   --model google/gemini-2.5-flash --output extracted.txt
 ```
 

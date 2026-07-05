@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenRouter Heavy Task Gate"
+  short_description: "Route heavy coding work with minimal prompts"
+  default_prompt: "Use $openrouter-heavy-task-gate to route this task between ollama-worker and GLM 5.2 through OpenRouter with minimal user interruption."

@@ -1,19 +1,21 @@
 ---
 name: openrouter-model-advisor
-description: Recommend the best OpenRouter model or model family for a task using live OpenRouter pricing/capability data, local project preferences, documented model notes, availability, and cost-quality tradeoffs. Use when choosing between OpenRouter models, changing a project model, selecting image/text/coding/vision/reasoning models, estimating lowest-cost acceptable models, or deciding whether a premium quality model is worth asking the user about before spending credits.
+description: Recommend the best OpenRouter model or model family when a cloud model choice actually matters. Use when choosing between OpenRouter models, changing a project model, selecting image/text/coding/vision/reasoning models, estimating lowest-cost acceptable models, checking live pricing/capabilities, or deciding whether a premium model is worth asking the user about before spending credits. Do not use for routine local coding edits that ollama-worker can handle or when GLM 5.2 is already the explicit approved default.
 ---
 
 # OpenRouter Model Advisor
 
-Use this skill before spending OpenRouter credits when the model choice matters. The goal is smooth routing: take obvious low-risk choices without ceremony, but ask the user before a materially more expensive quality choice or any model switch in an existing project.
+Use this skill before spending OpenRouter credits when the model choice matters. The goal is smooth routing: take obvious low-risk choices without ceremony, and ask the user only before a materially more expensive quality choice or a model switch that changes existing project behavior.
+
+For coding work, prefer the routing ladder first: `ollama-worker` for small bounded edits, `openrouter-heavy-task-gate` for heavy work, then this advisor only when the OpenRouter model choice is non-obvious.
 
 ## Decision Policy
 
 - Use live OpenRouter data for model IDs, pricing, modalities, context, supported parameters, and availability-sensitive fields.
 - Use local project preferences when they exist. Treat them as experience notes, not universal truth.
 - Prefer `z-ai/glm-5.2` as a local default/fallback for text, coding, long-context, and analysis tasks when no cheaper, more specialized, or project-specific model is clearly better.
-- Warn every time a recommendation changes an existing project model. If `--current-model` is known and differs from the recommendation, ask before switching.
-- Ask before starting a premium model when a cheaper adequate option exists and the user did not explicitly request best quality.
+- Warn when a recommendation changes an existing project model. Ask before switching only if the change is material for cost, quality, latency, or output type.
+- Ask before starting a premium model when a cheaper adequate option exists and the user did not explicitly request best quality, unless the expected cost is clearly minor for the sprint.
 - Do not ask for obvious choices: explicit user model selection, very low-cost exploratory work, or a project preference that matches the user's quality requirement and does not switch the configured model.
 - Present sources by type: live facts, official/provider docs, benchmark or community evaluation, and local project evidence.
 

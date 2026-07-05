@@ -1,25 +1,36 @@
 ---
 name: openrouter-heavy-task-gate
-description: Ask the user before using GLM 5.2 through OpenRouter on heavy coding work. Use when working in local projects under C:\vscode or similar repositories and the task is large, risky, architectural, cross-file, cross-service, production-impacting, hard to debug, involves major refactoring, migration planning, complex test failures, security-sensitive changes, performance investigations, or would benefit from a second model review. Trigger even when the user does not explicitly mention OpenRouter or GLM 5.2.
+description: "Route coding work between local ollama-worker and GLM 5.2 through OpenRouter with minimal user interruption. Use when working in local projects under C:\\vscode or similar repositories and the task is large, risky, architectural, cross-file, cross-service, hard to debug, involves major refactoring, migration planning, complex test failures, performance investigations, or would benefit from a second model review. Prefer automatic routing: ollama-worker for small bounded edits, OpenRouter/GLM for heavy analysis. Ask the user only for missing credentials, materially higher-cost model choices, production/destructive actions, unclear requirements that block progress, or sending sensitive/private context."
 ---
 
 # OpenRouter Heavy Task Gate
 
-Use this skill as a decision gate before spending OpenRouter credits or sending project context to GLM 5.2.
+Use this skill as a quiet router for long sprints. Prefer progress over confirmation loops. The routing order is:
 
-## Gate Rule
+1. Codex handles orchestration, context selection, final edits, and validation.
+2. `ollama-worker` handles small bounded code edits and FILE_OP patches.
+3. OpenRouter/GLM handles large context, architecture, ambiguous failures, and second-pass review.
 
-When the task looks heavy, pause before calling OpenRouter and ask one concise question:
+## Routing Rule
 
-`Denne oppgaven er tung nok til at GLM 5.2 kan være nyttig som second pass. Vil du at jeg kjører OpenRouter-skillen på relevant kontekst før jeg implementerer?`
+When the task looks heavy, route to GLM 5.2 without asking if all of these are true:
 
-Proceed based on the user's answer:
+- `OPENROUTER_API_KEY` is already set.
+- The prompt can exclude secrets, credentials, private customer data, and irrelevant files.
+- The default `z-ai/glm-5.2` model is suitable.
+- The action is analysis, planning, risk review, or patch guidance, not a production/destructive operation.
 
-- If yes, use `openrouter-glm52` with a focused prompt containing only relevant repo context, errors, diffs, constraints, and the specific question GLM should answer.
-- If no, continue with normal local analysis and implementation.
-- If the request is urgent, destructive, production-facing, or security-sensitive, still ask before GLM unless the user explicitly requested OpenRouter/GLM in the same turn.
+Ask one concise question only when an exception applies:
 
-Keep the default path quiet: for ordinary heavy coding work, GLM 5.2 is the local default and no separate model-shopping step is needed after the user approves OpenRouter.
+- Missing `OPENROUTER_API_KEY`: ask the user to set it locally.
+- Sensitive context is required: ask before sending that context outside the machine.
+- A premium/non-default model or existing project model switch is recommended.
+- The operation is production-facing, destructive, security-sensitive, or could expose secrets.
+- Requirements are ambiguous enough that model routing cannot fix the uncertainty.
+
+If the task can be split into local worker units, use `ollama-worker` for those units and use GLM only for the remaining broad question.
+
+Keep the default path quiet: for ordinary heavy coding work, GLM 5.2 is the cloud default and no separate model-shopping step is needed.
 
 Use `openrouter-model-advisor` before the model call only when the model choice matters:
 
@@ -31,7 +42,7 @@ Use `openrouter-model-advisor` before the model call only when the model choice 
 
 ## What Counts As Heavy
 
-Ask before using GLM 5.2 for:
+Use GLM 5.2 for:
 
 - architecture decisions, migration plans, or large design changes
 - refactors spanning multiple modules, services, or repositories
@@ -41,7 +52,15 @@ Ask before using GLM 5.2 for:
 - performance, concurrency, caching, or distributed-system investigations
 - tasks where a second independent review could catch hidden risks
 
-Do not ask for routine edits, small bug fixes, simple tests, formatting, command output, documentation wording, or narrow single-file changes unless the user asks for a second pass.
+Do not use GLM for routine edits, small bug fixes, simple tests, formatting, command output, documentation wording, or narrow single-file changes unless the user asks for a second pass.
+
+Use `ollama-worker` instead for:
+
+- one function, method, component, or test file
+- targeted replacement with exact context
+- small generated scripts
+- regex or documentation edits
+- local FILE_OP patch generation where Codex can review the diff
 
 ## OpenRouter Use
 
@@ -52,11 +71,17 @@ Before calling OpenRouter:
 3. Summarize only the minimum relevant context instead of sending entire files or repositories.
 4. Prefer `--reasoning-effort high` for hard engineering analysis and enough `--max-tokens` for final content, since GLM may spend tokens on reasoning before message content.
 5. Treat GLM output as advice. Validate any implementation locally with tests, linters, or smoke checks.
-6. If `openrouter-model-advisor` recommends a premium model or a project model switch, ask one concise follow-up before spending credits unless the user already explicitly approved that exact model.
+6. If `openrouter-model-advisor` recommends a premium model or a project model switch, ask only when the cost or behavior change is material; otherwise continue and note the choice in the final summary.
 
 ## Sandbox Notes
 
-The expected approved command for GLM calls is:
+The expected command for this override checkout is:
+
+```powershell
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
+```
+
+The installed Codex skill path may also be available:
 
 ```powershell
 python "C:\Users\TonnyRogerHolm(Test)\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."

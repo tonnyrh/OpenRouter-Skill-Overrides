@@ -1,6 +1,6 @@
 ---
 name: flux2pro
-description: Generate images and game graphics via OpenRouter. Supports FLUX.2 Pro (Black Forest Labs) and chat-based image models (GPT-5 Image, GPT-5 Image Mini, Gemini Flash Image). Use when the user wants game sprites, backgrounds, textures, concept art, UI icons, or any image generation through OpenRouter. Trigger on mentions of FLUX, FLUX.2, FLUX Pro, GPT-5 Image, Gemini image, game graphics, sprite generation, or image generation via OpenRouter.
+description: Legacy OpenRouter image-generation helper for FLUX-style and chat-based image models. Prefer openrouter-flux2-pro for FLUX.2 Pro work and use this only when its game-art presets or multi-model generate_flux.py script are specifically needed. This is not a coding offload skill; keep routine code edits on ollama-worker and heavy code review on openrouter-glm52.
 ---
 
 # OpenRouter Image Generation
@@ -28,13 +28,13 @@ Both families return the image in `choices[0].message.images[0].image_url.url` (
 
 ```powershell
 # FLUX.2 Pro (default)
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "a glowing crystal sword on a dark background"
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "a glowing crystal sword on a dark background"
 
 # GPT-5 Image Mini
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "a cute Smurf, blue skin, white hat, cheerful cartoon style" --model openai/gpt-5-image-mini
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "a cute Smurf, blue skin, white hat, cheerful cartoon style" --model openai/gpt-5-image-mini
 
 # GPT-5 Image (premium)
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "NumberQuest game icon, precise text, clean cartoon style" --model openai/gpt-5-image
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "NumberQuest game icon, precise text, clean cartoon style" --model openai/gpt-5-image
 ```
 
 ## Game Graphics Presets (FLUX-style models)
@@ -51,9 +51,9 @@ Use `--preset` to inject optimized style tokens for common game art types:
 | `portrait` | Character portraits, NPCs |
 
 ```powershell
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "knight warrior in armor" --preset sprite
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "dark forest with glowing mushrooms" --preset background --aspect-ratio 16:9
-python "$env:USERPROFILE\.claude\skills\flux2pro\scripts\generate_flux.py" "health potion red bottle" --preset icon --aspect-ratio 1:1 --image-size 0.5K
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "knight warrior in armor" --preset sprite
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "dark forest with glowing mushrooms" --preset background --aspect-ratio 16:9
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\flux2pro\scripts\generate_flux.py" "health potion red bottle" --preset icon --aspect-ratio 1:1 --image-size 0.5K
 ```
 
 ## All Options
