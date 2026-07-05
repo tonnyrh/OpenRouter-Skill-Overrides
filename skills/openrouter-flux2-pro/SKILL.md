@@ -27,22 +27,24 @@ Use this skill when FLUX.2 Pro should generate or edit images through OpenRouter
 
 ## Direct Generation
 
+Call the script from either the override checkout or the installed runtime copy that matches the host tool.
+
 Generate a square image:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "A clean product photo of a matte black desk lamp on a walnut desk, soft daylight" --output .\generated\desk-lamp.png
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "A clean product photo of a matte black desk lamp on a walnut desk, soft daylight" --output .\generated\desk-lamp.png
 ```
 
 Choose aspect ratio and size:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Editorial hero image of a modern Oslo waterfront logistics dashboard, realistic, sharp UI screens" --aspect-ratio 16:9 --image-size 2K --output .\generated\hero.png
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Editorial hero image of a modern Oslo waterfront logistics dashboard, realistic, sharp UI screens" --aspect-ratio 16:9 --image-size 2K --output .\generated\hero.png
 ```
 
 Use a deterministic seed:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Minimal app icon, folded map pin made of glass, white background" --seed 42 --output .\generated\icon.png
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Minimal app icon, folded map pin made of glass, white background" --seed 42 --output .\generated\icon.png
 ```
 
 ## Reference Images
@@ -50,7 +52,7 @@ python "$env:USERPROFILE\.codex\skills\openrouter-flux2-pro\scripts\generate_flu
 Pass one or more reference files for image editing or style/character consistency:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Keep the same product, place it in a premium Scandinavian kitchen, natural light" --reference .\input\product.jpg --output .\generated\product-kitchen.png
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-flux2-pro\scripts\generate_flux2_pro.py" "Keep the same product, place it in a premium Scandinavian kitchen, natural light" --reference .\input\product.jpg --output .\generated\product-kitchen.png
 ```
 
 The script embeds reference images as base64 data URLs in the chat message. Use small, relevant references; avoid sending private or unrelated images.

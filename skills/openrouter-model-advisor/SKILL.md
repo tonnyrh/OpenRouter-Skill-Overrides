@@ -21,28 +21,30 @@ For coding work, prefer the routing ladder first: `ollama-worker` for small boun
 
 ## Quick Start
 
+Call the script from either the override checkout or the installed runtime copy that matches the host tool.
+
 Recommend a model for a task:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Generate final NumberQuest game asset icons with precise text and consistent style" --project NumberQuest
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Generate final NumberQuest game asset icons with precise text and consistent style" --project NumberQuest
 ```
 
 Recommend with known current project model:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Create NumberQuest image assets" --project NumberQuest --current-model black-forest-labs/flux.2-pro
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Create NumberQuest image assets" --project NumberQuest --current-model black-forest-labs/flux.2-pro
 ```
 
 Find the cheapest acceptable option:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Draft a short changelog summary" --priority cost
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Draft a short changelog summary" --priority cost
 ```
 
 Force an image-generation search:
 
 ```powershell
-python "$env:USERPROFILE\.codex\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Prototype a small game background" --mode image --priority balanced
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-model-advisor\scripts\recommend_model.py" --task "Prototype a small game background" --mode image --priority balanced
 ```
 
 ## Output Contract

@@ -7,7 +7,7 @@ description: "Route coding work between local ollama-worker and GLM 5.2 through 
 
 Use this skill as a quiet router for long sprints. Prefer progress over confirmation loops. The routing order is:
 
-1. The Cursor agent handles orchestration, context selection, final edits, and validation.
+1. The primary agent handles orchestration, context selection, final edits, and validation.
 2. `ollama-worker` from `C:\vscode\SharedOllama` handles small bounded code edits and FILE_OP patches.
 3. OpenRouter/GLM handles large context, architecture, ambiguous failures, and second-pass review.
 
@@ -60,7 +60,7 @@ Use `ollama-worker` instead for:
 - targeted replacement with exact context
 - small generated scripts
 - regex or documentation edits
-- local FILE_OP patch generation where the Cursor agent can review the diff
+- local FILE_OP patch generation where the primary agent can review the diff
 
 ## Local worker path
 
@@ -90,10 +90,11 @@ The expected command for this override checkout is:
 python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
 ```
 
-The installed personal or Codex runtime path may also be available:
+An installed runtime path may also be available, for example:
 
 ```powershell
 python "C:\Users\TonnyRogerHolm(Test)\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
+python "C:\Users\TonnyRogerHolm(Test)\.claude\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
 ```
 
 If sandbox blocks network access, request escalation for that exact script command instead of working around it. For model lookup scripts from `openrouter-models`, `npx tsx ...` may need escalation because `tsx` starts an `esbuild` child process.

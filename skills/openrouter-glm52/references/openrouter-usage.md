@@ -4,10 +4,11 @@
 
 The upstream skills repository is `OpenRouterTeam/skills`.
 
-Install all OpenRouter skills globally for Codex:
+Install all OpenRouter skills globally for Codex or Claude Code:
 
 ```powershell
 gh skill install OpenRouterTeam/skills --agent codex --scope user
+gh skill install OpenRouterTeam/skills --agent claude --scope user
 ```
 
 Install specific upstream skills globally:
@@ -16,6 +17,9 @@ Install specific upstream skills globally:
 gh skill install OpenRouterTeam/skills openrouter-typescript-sdk --agent codex --scope user
 gh skill install OpenRouterTeam/skills openrouter-models --agent codex --scope user
 gh skill install OpenRouterTeam/skills openrouter-generations --agent codex --scope user
+gh skill install OpenRouterTeam/skills openrouter-typescript-sdk --agent claude --scope user
+gh skill install OpenRouterTeam/skills openrouter-models --agent claude --scope user
+gh skill install OpenRouterTeam/skills openrouter-generations --agent claude --scope user
 ```
 
 Use exact paths for faster installs from large repositories:
