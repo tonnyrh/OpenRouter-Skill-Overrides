@@ -12,7 +12,10 @@ from pathlib import Path
 SKILLS: dict[str, list[str]] = {
     "claude": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "flux2pro", "openrouter-pdf-extract"],
     "codex":  ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract"],
-    "cursor": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract", "flux2pro"],
+    "cursor": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract"],
+}
+OBSOLETE_SKILLS: dict[str, list[str]] = {
+    "cursor": ["flux2pro"],
 }
 
 
@@ -30,6 +33,12 @@ def main() -> int:
     else:
         runtime = Path.home() / f".{args.tool}"
     skills_dst = runtime / "skills"
+
+    for skill in OBSOLETE_SKILLS.get(args.tool, []):
+        dst = skills_dst / skill
+        if dst.exists():
+            shutil.rmtree(dst)
+            print(f"Removed obsolete {skill} -> {dst}")
 
     for skill in SKILLS[args.tool]:
         src = repo_root / "skills" / skill

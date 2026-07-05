@@ -50,7 +50,6 @@ OpenRouter-Skill-Overrides/
       openrouter-model-advisor/
       openrouter-pdf-extract/
       openrouter-flux2-pro/
-      flux2pro/
   skills/
     openrouter-glm52/             ← canonical heavy-analysis skill
     openrouter-heavy-task-gate/   ← canonical routing gate
@@ -63,8 +62,8 @@ OpenRouter-Skill-Overrides/
       glm52.md
       heavy-task-gate.md
   scripts/
-    sync.py                    ← cross-platform; use --tool claude|codex
-    check.py                   ← cross-platform; use --tool claude|codex
+    sync.py                    ← cross-platform; use --tool claude|codex|cursor
+    check.py                   ← cross-platform; use --tool claude|codex|cursor
   docs/
     archive/
       claude-glm52-setup-note.md
@@ -76,7 +75,7 @@ Claude Code slash commands live in `claude/commands/` because Codex does not use
 
 The `scripts/` directory contains separate installers/checks for each runtime. Codex scripts only write to `.codex`. Claude scripts only write to `.claude`.
 
-`skills/openrouter-flux2-pro` is the active Codex image skill. `skills/flux2pro` is the Claude Code compatibility variant with the older Claude skill name `flux2pro`; both use the same current OpenRouter API contract.
+`skills/openrouter-flux2-pro` is the active Codex and Cursor image skill. `skills/flux2pro` is the Claude Code compatibility variant with the older Claude skill name `flux2pro`; both use the same current OpenRouter API contract.
 
 ## Runtime Separation
 
