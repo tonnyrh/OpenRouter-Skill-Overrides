@@ -1,0 +1,16 @@
+---
+description: Route Cursor agent work in OpenRouter-Skill-Overrides and prefer the appropriate OpenRouter skill wrapper for the task.
+alwaysApply: true
+---
+
+# OpenRouter Skill Routing
+
+- Treat [AGENTS.md](../../AGENTS.md) as the repository-level workflow baseline.
+- Load the canonical skill under `skills/<name>/SKILL.md` before using any wrapper in `.cursor/skills/<name>/`.
+- Use `ollama-worker` first for bounded local coding edits: one file, one function, tests, regex, FILE_OP patches, and small scripts.
+- Use `openrouter-heavy-task-gate` to choose between `ollama-worker` and OpenRouter escalation.
+- Use `openrouter-glm52` for heavy coding analysis, cross-file reasoning, long-context work, and second-pass review.
+- Use `openrouter-model-advisor` only when model selection materially affects cost, latency, modality, or quality.
+- Use `openrouter-pdf-extract` for PDF extraction tasks.
+- Prefer `openrouter-flux2-pro` for FLUX.2 Pro image work; use `flux2pro` only when the legacy multi-model presets are specifically relevant.
+- Keep OpenRouter prompts focused and secret-free, and validate any code changes locally after model guidance.

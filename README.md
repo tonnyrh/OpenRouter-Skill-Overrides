@@ -6,6 +6,20 @@ This repository is the source of truth for user-maintained OpenRouter routing, h
 
 It is intentionally not a fork of upstream. Treat upstream OpenRouter skills as a dependency, and treat this repository as the local customization layer installed into each tool runtime.
 
+## Separation Model
+
+This repository now has an explicit separation between canonical skills and tool-specific discovery layers:
+
+- `skills/`
+  Source of truth for the actual OpenRouter skill implementations.
+- `.cursor/`
+  Cursor-specific discovery layer. It contains Cursor project rules and lightweight Cursor skill wrappers only.
+- `AGENTS.md`
+  Repository-level instructions for tools that support `AGENTS.md`, including Cursor.
+
+Do not edit `.cursor/skills/*` first when changing real behavior.
+Those wrappers exist only so Cursor can discover and route to the canonical skills in `skills/*`.
+
 ## What This Project Is
 
 - A shared source tree for local OpenRouter custom skills.
@@ -25,13 +39,24 @@ It is intentionally not a fork of upstream. Treat upstream OpenRouter skills as 
 ```text
 OpenRouter-Skill-Overrides/
   README.md
+  AGENTS.md
+  .cursor/
+    rules/
+      agent-routing.mdc
+    skills/
+      openrouter-glm52/
+      openrouter-heavy-task-gate/
+      openrouter-model-advisor/
+      openrouter-pdf-extract/
+      openrouter-flux2-pro/
+      flux2pro/
   skills/
-    openrouter-glm52/
-    openrouter-heavy-task-gate/
-    openrouter-model-advisor/
-    openrouter-flux2-pro/         ← Codex image skill
-    flux2pro/                     ← Claude Code image skill
-    openrouter-pdf-extract/       ← PDF-to-text extraction (Gemini Flash Lite)
+    openrouter-glm52/             ← canonical heavy-analysis skill
+    openrouter-heavy-task-gate/   ← canonical routing gate
+    openrouter-model-advisor/     ← canonical model-choice skill
+    openrouter-flux2-pro/         ← canonical FLUX.2 Pro image skill
+    flux2pro/                     ← canonical legacy image compatibility skill
+    openrouter-pdf-extract/       ← canonical PDF-to-text extraction skill
   claude/
     commands/
       glm52.md
@@ -44,7 +69,7 @@ OpenRouter-Skill-Overrides/
       claude-glm52-setup-note.md
 ```
 
-Shared code lives in `skills/`, but not every skill is installed into every runtime. The sync scripts decide what is safe for each tool.
+Shared code lives in `skills/`, but not every skill is installed into every runtime. The sync scripts decide what is safe for each tool. Cursor wrappers in `.cursor/skills/` should stay thin and point back to `skills/`.
 
 Claude Code slash commands live in `claude/commands/` because Codex does not use Claude Code's command format.
 
@@ -63,8 +88,12 @@ Keep these boundaries clear:
 | `%USERPROFILE%\.claude\skills` | Active Claude Code skill runtime |
 | `%USERPROFILE%\.claude\commands` | Active Claude Code slash commands |
 | `%USERPROFILE%\.claude\openrouter-skills` | Local upstream OpenRouterTeam/skills clone for Claude Code |
+| `.cursor/rules` | Cursor project rules for this repository only |
+| `.cursor/skills` | Cursor-discoverable wrappers pointing to canonical `skills/*` |
+| `AGENTS.md` | Repository-level agent instructions for Cursor and other AGENTS-aware tools |
 
 Do not manually edit runtime copies first. Edit this repository, then run the relevant sync script.
+Do not move canonical skill logic into `.cursor/`; that would make Cursor-specific discovery files compete with the real implementation.
 
 ## Model Routing Policy
 
@@ -72,6 +101,7 @@ The project should stay model-open.
 
 Current local defaults and preferences:
 
+- Prefer a local `ollama-worker` before any cloud call when that worker is available from the active workspace or runtime.
 - Prefer `z-ai/glm-5.2` for heavy coding, long-context repository analysis, architecture review, migration risk review, and difficult debugging when a second pass is useful.
 - Use `openrouter-model-advisor` when the model choice matters.
 - Use official upstream OpenRouter skills for raw model discovery, generations inspection, TypeScript SDK usage, and other provider-specific workflows.
@@ -148,6 +178,69 @@ Codex runtime files installed:
 ~/.codex/skills/openrouter-model-advisor
 ~/.codex/skills/openrouter-flux2-pro
 ```
+
+## Install For Cursor
+
+Cursor can use this repository directly without copying the skills into a separate runtime.
+
+Repository-local Cursor files:
+
+- `.cursor/rules/agent-routing.mdc`
+- `.cursor/skills/*`
+- `AGENTS.md`
+
+Routing model in Cursor:
+
+- Cursor uses `.cursor/rules/agent-routing.mdc` to choose the right skill family.
+- Cursor discovers the wrapper skills in `.cursor/skills/`.
+- Each wrapper points back to the canonical implementation in `skills/*`.
+- Repository-wide behavior and separation rules live in `AGENTS.md`.
+- If a local `ollama-worker` exists in the active workspace or runtime, Cursor should prefer it for bounded local coding help before OpenRouter escalation.
+
+That means:
+
+- Change `skills/*` to change real skill behavior.
+- Change `.cursor/rules/*` to change Cursor routing behavior.
+- Change `.cursor/skills/*` only when Cursor discovery metadata needs to change.
+
+### Local Ollama coding help
+
+Prerequisites:
+
+- Ollama running on Windows at `http://localhost:11434`
+- At least one preferred model installed (`qwen3-coder`, `qwen3:8b`, or `qwen2.5-coder:7b` recommended)
+
+This repository does not own the canonical `ollama-worker` implementation.
+Use the canonical local worker from `C:\vscode\SharedOllama` and keep that implementation separate from this OpenRouter repository.
+
+Quick health check:
+
+```powershell
+cd C:\vscode\SharedOllama
+python skills\ollama-worker\scripts\call_ollama.py --list
+python skills\ollama-worker\scripts\check_ollama.py
+```
+
+Generate a small code patch locally:
+
+```powershell
+python C:\vscode\SharedOllama\skills\ollama-worker\scripts\call_ollama.py --user "Write a Python function is_palindrome(s: str) -> bool"
+```
+
+Apply a FILE_OP patch from the local model:
+
+```powershell
+python C:\vscode\SharedOllama\skills\ollama-worker\scripts\call_ollama.py `
+  --system (Get-Content C:\vscode\SharedOllama\skills\ollama-worker\prompts\file_op_system.txt -Raw) `
+  --user "Add a __repr__ to class Foo in src/foo.py`n`nFILE: src/foo.py`n<class snippet>" |
+  python C:\vscode\SharedOllama\skills\ollama-worker\scripts\apply_op.py --dry-run
+```
+
+Routing order in Cursor:
+
+1. `ollama-worker` for bounded edits
+2. `openrouter-heavy-task-gate` when scope is uncertain
+3. `openrouter-glm52` for heavy analysis and second-pass review
 
 ## Install For Claude Code
 
