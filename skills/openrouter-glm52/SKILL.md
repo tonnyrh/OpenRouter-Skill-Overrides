@@ -7,7 +7,7 @@ description: Use GLM 5.2 through OpenRouter for heavy coding assistance that is 
 
 Use this skill when GLM 5.2 should assist with heavy coding or analysis through OpenRouter. Keep API keys out of files, logs, commits, and final answers. Do not ask for confirmation merely because OpenRouter is involved when the task is clearly heavy and the API key is already available.
 
-Use `ollama-worker` first for small bounded edits. Use this skill for broader reasoning, risk review, long-context synthesis, or implementation plans that Codex will validate locally.
+Use `ollama-worker` from `C:\vscode\SharedOllama` first for small bounded edits. Use this skill for broader reasoning, risk review, long-context synthesis, or implementation plans that the Cursor agent will validate locally.
 
 ## Defaults
 
@@ -23,7 +23,7 @@ Use `ollama-worker` first for small bounded edits. Use this skill for broader re
 2. Check whether `OPENROUTER_API_KEY` is already available in the current shell before calling OpenRouter.
 3. If it is missing, ask the user to set it locally; never ask them to paste the key into chat unless they explicitly choose to.
 4. Use local project context first. Summarize only the relevant files, errors, tests, diffs, constraints, and decision question for GLM 5.2 instead of sending unnecessary secrets or entire repos.
-5. Ask GLM for analysis, risks, plan, or patch guidance. Codex performs final edits unless the user explicitly asks for generated patch content.
+5. Ask GLM for analysis, risks, plan, or patch guidance. The Cursor agent performs final edits unless the user explicitly asks for generated patch content.
 6. Treat model output as advice. Validate code changes locally with the project's tests, linters, or smoke checks before presenting results.
 
 Ask the user before a call only when sensitive/private context must be sent, a materially more expensive non-default model is required, or the task would perform production/destructive operations.

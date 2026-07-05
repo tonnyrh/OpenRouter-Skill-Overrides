@@ -12,19 +12,23 @@ from pathlib import Path
 SKILLS: dict[str, list[str]] = {
     "claude": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "flux2pro", "openrouter-pdf-extract"],
     "codex":  ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract"],
+    "cursor": ["openrouter-glm52", "openrouter-heavy-task-gate", "openrouter-model-advisor", "openrouter-flux2-pro", "openrouter-pdf-extract", "flux2pro"],
 }
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Sync OpenRouter skill overrides to a tool runtime.")
-    p.add_argument("--tool", choices=["claude", "codex"], required=True, help="Target runtime.")
+    p.add_argument("--tool", choices=["claude", "codex", "cursor"], required=True, help="Target runtime.")
     return p.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
-    runtime = Path.home() / f".{args.tool}"
+    if args.tool == "cursor":
+        runtime = Path.home() / ".cursor"
+    else:
+        runtime = Path.home() / f".{args.tool}"
     skills_dst = runtime / "skills"
 
     for skill in SKILLS[args.tool]:
@@ -46,7 +50,8 @@ def main() -> int:
             shutil.copy2(md, commands_dst / md.name)
         print(f"Synced Claude commands -> {commands_dst}")
 
-    print(f"{args.tool.capitalize()} OpenRouter custom skills are in sync.")
+    label = "Cursor" if args.tool == "cursor" else args.tool.capitalize()
+    print(f"{label} OpenRouter custom skills are in sync.")
     return 0
 
 

@@ -1,6 +1,6 @@
 # OpenRouter Skill Overrides
 
-Local OpenRouter skill overrides for Codex and Claude Code.
+Local OpenRouter skill overrides for Codex, Claude Code, and Cursor.
 
 This repository is the source of truth for user-maintained OpenRouter routing, helper scripts, and decision gates that are not part of the upstream [`OpenRouterTeam/skills`](https://github.com/OpenRouterTeam/skills) project.
 
@@ -32,6 +32,7 @@ Those wrappers exist only so Cursor can discover and route to the canonical skil
 - It is not the upstream `OpenRouterTeam/skills` repository.
 - It is not locked to GLM 5.2. GLM 5.2 is the current local default for heavy text, coding, long-context analysis, and second-pass review, but model routing should stay dynamic.
 - It is not a replacement for official OpenRouter skills such as `openrouter-models`, `openrouter-generations`, or `openrouter-typescript-sdk`.
+- It is not the canonical home for `ollama-worker`. That lives in `C:\vscode\SharedOllama`.
 - It should not make Codex and Claude Code share runtime directories. They must be installed separately.
 
 ## Repository Layout
@@ -83,7 +84,8 @@ Keep these boundaries clear:
 
 | Area | Purpose |
 |---|---|
-| `C:\vscode\OpenRouter-Skill-Overrides` | Git-tracked source of truth |
+| `C:\vscode\SharedOllama` | Canonical local `ollama-worker` and SharedOllama proxy/monitor |
+| `C:\vscode\OpenRouter-Skill-Overrides` | Git-tracked source of truth for OpenRouter skills |
 | `%USERPROFILE%\.codex\skills` | Active Codex skill runtime |
 | `%USERPROFILE%\.claude\skills` | Active Claude Code skill runtime |
 | `%USERPROFILE%\.claude\commands` | Active Claude Code slash commands |
@@ -189,6 +191,21 @@ Repository-local Cursor files:
 - `.cursor/skills/*`
 - `AGENTS.md`
 
+Install OpenRouter skills globally for all Cursor workspaces:
+
+```powershell
+cd C:\vscode\OpenRouter-Skill-Overrides
+python scripts\sync.py --tool cursor
+```
+
+Or:
+
+```powershell
+.\scripts\install_cursor_skills.ps1
+```
+
+This copies canonical skills into `%USERPROFILE%\.cursor\skills\`.
+
 Routing model in Cursor:
 
 - Cursor uses `.cursor/rules/agent-routing.mdc` to choose the right skill family.
@@ -218,7 +235,6 @@ Quick health check:
 ```powershell
 cd C:\vscode\SharedOllama
 python skills\ollama-worker\scripts\call_ollama.py --list
-python skills\ollama-worker\scripts\check_ollama.py
 ```
 
 Generate a small code patch locally:

@@ -7,8 +7,8 @@ description: "Route coding work between local ollama-worker and GLM 5.2 through 
 
 Use this skill as a quiet router for long sprints. Prefer progress over confirmation loops. The routing order is:
 
-1. Codex handles orchestration, context selection, final edits, and validation.
-2. `ollama-worker` handles small bounded code edits and FILE_OP patches.
+1. The Cursor agent handles orchestration, context selection, final edits, and validation.
+2. `ollama-worker` from `C:\vscode\SharedOllama` handles small bounded code edits and FILE_OP patches.
 3. OpenRouter/GLM handles large context, architecture, ambiguous failures, and second-pass review.
 
 ## Routing Rule
@@ -60,7 +60,16 @@ Use `ollama-worker` instead for:
 - targeted replacement with exact context
 - small generated scripts
 - regex or documentation edits
-- local FILE_OP patch generation where Codex can review the diff
+- local FILE_OP patch generation where the Cursor agent can review the diff
+
+## Local worker path
+
+Use the canonical local worker from SharedOllama:
+
+```powershell
+$worker = "C:\vscode\SharedOllama\skills\ollama-worker"
+python "$worker\scripts\call_ollama.py" --list
+```
 
 ## OpenRouter Use
 
@@ -81,7 +90,7 @@ The expected command for this override checkout is:
 python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
 ```
 
-The installed Codex skill path may also be available:
+The installed personal or Codex runtime path may also be available:
 
 ```powershell
 python "C:\Users\TonnyRogerHolm(Test)\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."

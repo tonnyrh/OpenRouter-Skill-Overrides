@@ -14,7 +14,7 @@ from pathlib import Path
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Verify OpenRouter skill installation.")
-    p.add_argument("--tool", choices=["claude", "codex"], required=True, help="Target runtime.")
+    p.add_argument("--tool", choices=["claude", "codex", "cursor"], required=True, help="Target runtime.")
     p.add_argument("--live-glm", action="store_true", help="Run a billed live GLM 5.2 call.")
     p.add_argument("--live-flux", action="store_true", help="Run a billed live FLUX generation.")
     p.add_argument(
@@ -45,8 +45,25 @@ def run_advisor(advisor: Path, *extra_args: str) -> dict:
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
-    runtime = Path.home() / f".{args.tool}"
+    if args.tool == "cursor":
+        runtime = Path.home() / ".cursor"
+    else:
+        runtime = Path.home() / f".{args.tool}"
     skills = runtime / "skills"
+
+    cursor_wrappers = [
+        repo_root / ".cursor" / "rules" / "agent-routing.mdc",
+        repo_root / "AGENTS.md",
+    ]
+    cursor_wrappers.extend(sorted((repo_root / ".cursor" / "skills").glob("*/SKILL.md")))
+    if args.tool == "cursor":
+        missing = [path for path in cursor_wrappers if not path.exists()]
+        if missing:
+            for path in missing:
+                print(f"FAIL: missing Cursor file: {path}", file=sys.stderr)
+            return 1
+        for path in cursor_wrappers:
+            print(f"cursor layout OK: {path}")
 
     if args.tool == "claude":
         image_skill = "flux2pro"
@@ -55,19 +72,27 @@ def main() -> int:
         image_skill = "openrouter-flux2-pro"
         image_script = "generate_flux2_pro.py"
 
-    python_files = [
+    repo_python_files = [
         repo_root / "skills" / "openrouter-glm52" / "scripts" / "call_glm52.py",
         repo_root / "skills" / "openrouter-model-advisor" / "scripts" / "recommend_model.py",
         repo_root / "skills" / image_skill / "scripts" / image_script,
         repo_root / "skills" / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
-        skills / "openrouter-glm52" / "scripts" / "call_glm52.py",
-        skills / "openrouter-model-advisor" / "scripts" / "recommend_model.py",
-        skills / image_skill / "scripts" / image_script,
-        skills / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
     ]
+    python_files = list(repo_python_files)
+    if args.tool != "cursor":
+        python_files.extend([
+            skills / "openrouter-glm52" / "scripts" / "call_glm52.py",
+            skills / "openrouter-model-advisor" / "scripts" / "recommend_model.py",
+            skills / image_skill / "scripts" / image_script,
+            skills / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
+        ])
     syntax_check(python_files)
 
     advisor = skills / "openrouter-model-advisor" / "scripts" / "recommend_model.py"
+    if not advisor.exists():
+        advisor = repo_root / "skills" / "openrouter-model-advisor" / "scripts" / "recommend_model.py"
+        if args.tool == "cursor":
+            print(f"WARN: personal Cursor skills not synced; using repo advisor at {advisor}", file=sys.stderr)
 
     run_advisor(advisor,
         "--task", "Second-pass review of a large coding task in a local repository",
@@ -92,17 +117,23 @@ def main() -> int:
     print("advisor policy OK: cheap routing and NumberQuest switch gate")
 
     if args.live_glm:
+        glm_script = skills / "openrouter-glm52" / "scripts" / "call_glm52.py"
+        if not glm_script.exists():
+            glm_script = repo_root / "skills" / "openrouter-glm52" / "scripts" / "call_glm52.py"
         subprocess.run([
             sys.executable,
-            str(skills / "openrouter-glm52" / "scripts" / "call_glm52.py"),
+            str(glm_script),
             "--max-tokens", "300", "Answer only with: OK",
         ], check=True)
 
     if args.live_flux:
         out = Path(tempfile.gettempdir()) / f"{args.tool}-flux2pro-live-check.png"
+        flux_script = skills / image_skill / "scripts" / image_script
+        if not flux_script.exists():
+            flux_script = repo_root / "skills" / image_skill / "scripts" / image_script
         subprocess.run([
             sys.executable,
-            str(skills / image_skill / "scripts" / image_script),
+            str(flux_script),
             "Tiny blue dot centered on a white background",
             "--aspect-ratio", "1:1", "--image-size", "0.5K",
             "--seed", "7", "--output", str(out),
