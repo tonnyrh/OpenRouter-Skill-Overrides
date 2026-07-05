@@ -116,8 +116,8 @@ def call_api(api_key: str, payload: dict) -> dict:
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://claude.ai/code",
-            "X-Title": "Claude Code Image Generation Skill",
+            "HTTP-Referer": "https://github.com/tonnyrh/OpenRouter-Skill-Overrides",
+            "X-Title": "OpenRouter Image Generation Skill",
         },
         method="POST",
     )

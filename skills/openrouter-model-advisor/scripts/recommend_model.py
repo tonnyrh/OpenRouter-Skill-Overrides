@@ -57,7 +57,7 @@ def fetch_models(models_json: str | None) -> tuple[list[dict], dict]:
         data = json.loads(path.read_text(encoding="utf-8"))
         return data.get("data", data), {"type": "saved_openrouter_models", "path": str(path)}
 
-    request = urllib.request.Request(MODELS_URL, headers={"User-Agent": "Codex OpenRouter Model Advisor"})
+    request = urllib.request.Request(MODELS_URL, headers={"User-Agent": "OpenRouter Model Advisor Skill"})
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             data = json.loads(response.read().decode("utf-8"))

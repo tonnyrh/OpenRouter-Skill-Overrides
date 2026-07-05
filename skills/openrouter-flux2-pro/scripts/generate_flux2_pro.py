@@ -160,8 +160,8 @@ def main() -> int:
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://openai.com/codex",
-            "X-Title": "Codex OpenRouter Image Generation Skill",
+            "HTTP-Referer": "https://github.com/tonnyrh/OpenRouter-Skill-Overrides",
+            "X-Title": "OpenRouter Image Generation Skill",
         },
         method="POST",
     )

@@ -62,8 +62,8 @@ def main() -> int:
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://claude.ai/code",
-            "X-Title": "Claude Code OpenRouter GLM 5.2 Skill",
+            "HTTP-Referer": "https://github.com/tonnyrh/OpenRouter-Skill-Overrides",
+            "X-Title": "OpenRouter GLM 5.2 Skill",
         },
         method="POST",
     )
