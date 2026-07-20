@@ -13,6 +13,7 @@ import urllib.request
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "z-ai/glm-5.2"
+DEFAULT_MAX_TOKENS = 4096
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,7 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--system", default="You are a concise senior software engineer.")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--reasoning-effort", choices=["low", "medium", "high", "xhigh"], default=None)
-    parser.add_argument("--max-tokens", type=int, default=None)
+    parser.add_argument("--max-tokens", type=int, default=None, help=f"Maximum completion tokens (default: {DEFAULT_MAX_TOKENS}).")
     parser.add_argument("--temperature", type=float, default=None)
     parser.add_argument("--json", action="store_true", help="Print the raw JSON response.")
     return parser.parse_args()
@@ -51,8 +52,7 @@ def main() -> int:
     }
     if args.reasoning_effort:
         payload["reasoning"] = {"effort": args.reasoning_effort}
-    if args.max_tokens is not None:
-        payload["max_tokens"] = args.max_tokens
+    payload["max_tokens"] = args.max_tokens if args.max_tokens is not None else DEFAULT_MAX_TOKENS
     if args.temperature is not None:
         payload["temperature"] = args.temperature
 
@@ -82,8 +82,20 @@ def main() -> int:
         return 0
 
     try:
-        content = data["choices"][0]["message"]["content"]
-        print(content if content is not None else "")
+        choice = data["choices"][0]
+        message = choice["message"]
+        content = message.get("content")
+        if content:
+            print(content)
+            return 0
+        finish_reason = choice.get("finish_reason")
+        usage = data.get("usage", {})
+        used = usage.get("completion_tokens", "unknown")
+        raise SystemExit(
+            "OpenRouter returned no answer content "
+            f"(finish_reason={finish_reason!r}, completion_tokens={used}). "
+            "Increase --max-tokens or lower --reasoning-effort."
+        )
     except (KeyError, IndexError, TypeError) as exc:
         raise SystemExit(json.dumps(data, indent=2, ensure_ascii=False)) from exc
     return 0
@@ -91,3 +103,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
