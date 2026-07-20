@@ -32,7 +32,6 @@ Those wrappers exist only so Cursor can discover and route to the canonical skil
 - It is not the upstream `OpenRouterTeam/skills` repository.
 - It is not locked to GLM 5.2. GLM 5.2 is the current local default for heavy text, coding, long-context analysis, and second-pass review, but model routing should stay dynamic.
 - It is not a replacement for official OpenRouter skills such as `openrouter-models`, `openrouter-generations`, or `openrouter-typescript-sdk`.
-- It is not the canonical home for `ollama-worker`. That lives in `C:\vscode\SharedOllama`.
 - It should not make Codex and Claude Code share runtime directories. They must be installed separately.
 
 ## Repository Layout
@@ -83,7 +82,6 @@ Keep these boundaries clear:
 
 | Area | Purpose |
 |---|---|
-| `C:\vscode\SharedOllama` | Canonical local `ollama-worker` and SharedOllama proxy/monitor |
 | `C:\vscode\OpenRouter-Skill-Overrides` | Git-tracked source of truth for OpenRouter skills |
 | `%USERPROFILE%\.codex\skills` | Active Codex skill runtime |
 | `%USERPROFILE%\.claude\skills` | Active Claude Code skill runtime |
@@ -102,7 +100,7 @@ The project should stay model-open.
 
 Current local defaults and preferences:
 
-- Prefer a local `ollama-worker` before any cloud call when that worker is available from the active workspace or runtime.
+- Handle bounded edits directly. Use OpenRouter only when external model assistance is warranted.
 - Prefer `z-ai/glm-5.2` for heavy coding, long-context repository analysis, architecture review, migration risk review, and difficult debugging when a second pass is useful.
 - Use `openrouter-model-advisor` when the model choice matters.
 - Use official upstream OpenRouter skills for raw model discovery, generations inspection, TypeScript SDK usage, and other provider-specific workflows.
@@ -211,7 +209,7 @@ Routing model in Cursor:
 - Cursor discovers the wrapper skills in `.cursor/skills/`.
 - Each wrapper points back to the canonical implementation in `skills/*`.
 - Repository-wide behavior and separation rules live in `AGENTS.md`.
-- If a local `ollama-worker` exists in the active workspace or runtime, Cursor should prefer it for bounded local coding help before OpenRouter escalation.
+- Cursor handles bounded edits directly before considering OpenRouter escalation.
 
 That means:
 
@@ -219,41 +217,9 @@ That means:
 - Change `.cursor/rules/*` to change Cursor routing behavior.
 - Change `.cursor/skills/*` only when Cursor discovery metadata needs to change.
 
-### Local Ollama coding help
-
-Prerequisites:
-
-- Ollama running on Windows at `http://localhost:11434`
-- At least one preferred model installed (`qwen3-coder`, `qwen3:8b`, or `qwen2.5-coder:7b` recommended)
-
-This repository does not own the canonical `ollama-worker` implementation.
-Use the canonical local worker from `C:\vscode\SharedOllama` and keep that implementation separate from this OpenRouter repository.
-
-Quick health check:
-
-```powershell
-cd C:\vscode\SharedOllama
-python skills\ollama-worker\scripts\call_ollama.py --list
-```
-
-Generate a small code patch locally:
-
-```powershell
-python C:\vscode\SharedOllama\skills\ollama-worker\scripts\call_ollama.py --user "Write a Python function is_palindrome(s: str) -> bool"
-```
-
-Apply a FILE_OP patch from the local model:
-
-```powershell
-python C:\vscode\SharedOllama\skills\ollama-worker\scripts\call_ollama.py `
-  --system (Get-Content C:\vscode\SharedOllama\skills\ollama-worker\prompts\file_op_system.txt -Raw) `
-  --user "Add a __repr__ to class Foo in src/foo.py`n`nFILE: src/foo.py`n<class snippet>" |
-  python C:\vscode\SharedOllama\skills\ollama-worker\scripts\apply_op.py --dry-run
-```
-
 Routing order in Cursor:
 
-1. `ollama-worker` for bounded edits
+1. Direct agent edits for bounded work
 2. `openrouter-heavy-task-gate` when scope is uncertain
 3. `openrouter-glm52` for heavy analysis and second-pass review
 

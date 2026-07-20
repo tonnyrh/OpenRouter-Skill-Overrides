@@ -1,6 +1,6 @@
 ---
 name: openrouter-pdf-extract
-description: Extract text from PDF files using OpenRouter multimodal models when local text extraction is insufficient or native PDF model input is useful. Use when the user wants to convert a PDF document to plain text, extract structured content from product lists, invoices, or reports, or process large PDF files programmatically. This is not a coding offload skill; keep routine code edits on ollama-worker.
+description: Extract text from PDF files using OpenRouter multimodal models when local text extraction is insufficient or native PDF model input is useful. Use when the user wants to convert a PDF document to plain text, extract structured content from product lists, invoices, or reports, or process large PDF files programmatically. This is not a coding offload skill.
 ---
 
 # OpenRouter PDF Text Extraction

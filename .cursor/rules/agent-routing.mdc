@@ -7,8 +7,8 @@ alwaysApply: true
 
 - Treat [AGENTS.md](../../AGENTS.md) as the repository-level workflow baseline.
 - Load the canonical skill under `skills/<name>/SKILL.md` before using any wrapper in `.cursor/skills/<name>/`.
-- For bounded local coding edits, use `ollama-worker` from `C:\vscode\SharedOllama` when available.
-- Use `openrouter-heavy-task-gate` to choose between local `ollama-worker` and OpenRouter escalation.
+- Handle bounded edits directly; use no external model unless the task warrants OpenRouter escalation.
+- Use `openrouter-heavy-task-gate` to decide between direct work and OpenRouter escalation.
 - Use `openrouter-glm52` for heavy coding analysis, cross-file reasoning, long-context work, and second-pass review.
 - Use `openrouter-model-advisor` only when model selection materially affects cost, latency, modality, or quality.
 - Use `openrouter-pdf-extract` for PDF extraction tasks.

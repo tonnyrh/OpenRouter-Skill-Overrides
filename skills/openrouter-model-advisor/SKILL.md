@@ -1,13 +1,13 @@
 ---
 name: openrouter-model-advisor
-description: Recommend the best OpenRouter model or model family when a cloud model choice actually matters. Use when choosing between OpenRouter models, changing a project model, selecting image/text/coding/vision/reasoning models, estimating lowest-cost acceptable models, checking live pricing/capabilities, or deciding whether a premium model is worth asking the user about before spending credits. Do not use for routine local coding edits that ollama-worker can handle or when GLM 5.2 is already the explicit approved default.
+description: Recommend the best OpenRouter model or model family when a cloud model choice actually matters. Use when choosing between OpenRouter models, changing a project model, selecting image/text/coding/vision/reasoning models, estimating lowest-cost acceptable models, checking live pricing/capabilities, or deciding whether a premium model is worth asking the user about before spending credits. Do not use for routine coding edits or when GLM 5.2 is already the explicit approved default.
 ---
 
 # OpenRouter Model Advisor
 
 Use this skill before spending OpenRouter credits when the model choice matters. The goal is smooth routing: take obvious low-risk choices without ceremony, and ask the user only before a materially more expensive quality choice or a model switch that changes existing project behavior.
 
-For coding work, prefer the routing ladder first: `ollama-worker` for small bounded edits, `openrouter-heavy-task-gate` for heavy work, then this advisor only when the OpenRouter model choice is non-obvious.
+For coding work, handle small bounded edits directly, use `openrouter-heavy-task-gate` for heavy work, and use this advisor only when the OpenRouter model choice is non-obvious.
 
 ## Decision Policy
 

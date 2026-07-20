@@ -1,13 +1,13 @@
 ---
 name: openrouter-glm52
-description: Use GLM 5.2 through OpenRouter for heavy coding assistance that is too broad, ambiguous, risky, or long-context for local Ollama. Trigger when the user mentions OpenRouter, GLM 5.2, z-ai/glm-5.2, external model assistance, long-horizon agent work, second-pass review, architecture, migration planning, cross-file refactoring, difficult test failures, or repository-level analysis; also trigger automatically through openrouter-heavy-task-gate when local Ollama is unsuitable. Do not use for routine one-file edits, small tests, regex, documentation wording, or other tasks that ollama-worker can handle locally.
+description: Use GLM 5.2 through OpenRouter for heavy coding assistance, long-context repository work, second-pass review, architecture, migration planning, cross-file refactoring, difficult test failures, and complex analysis. Trigger when the user mentions OpenRouter, GLM 5.2, z-ai/glm-5.2, external model assistance, or repository-level analysis. Do not use for routine edits that do not benefit from an external model.
 ---
 
 # OpenRouter GLM 5.2
 
 Use this skill when GLM 5.2 should assist with heavy coding or analysis through OpenRouter. Keep API keys out of files, logs, commits, and final answers. Do not ask for confirmation merely because OpenRouter is involved when the task is clearly heavy and the API key is already available.
 
-Use `ollama-worker` from `C:\vscode\SharedOllama` first for small bounded edits. Use this skill for broader reasoning, risk review, long-context synthesis, or implementation plans that the primary agent will validate locally.
+Use this skill for broad reasoning, risk review, long-context synthesis, or implementation plans that the primary agent will validate locally. Handle routine bounded edits directly without requiring another skill.
 
 ## Defaults
 
@@ -21,7 +21,7 @@ Use `ollama-worker` from `C:\vscode\SharedOllama` first for small bounded edits.
 
 ## Workflow
 
-1. Confirm the task is not suitable for `ollama-worker`: too much context, cross-file reasoning, architectural judgment, unclear root cause, or risk that benefits from independent review.
+1. Confirm the task benefits from external-model assistance: substantial context, cross-file reasoning, architectural judgment, an unclear root cause, or independent risk review.
 2. Check whether `OPENROUTER_API_KEY` is already available in the current shell before calling OpenRouter.
 3. If it is missing, ask the user to set it locally; never ask them to paste the key into chat unless they explicitly choose to.
 4. Use local project context first. Summarize only the relevant files, errors, tests, diffs, constraints, and decision question for GLM 5.2 instead of sending unnecessary secrets or entire repos.

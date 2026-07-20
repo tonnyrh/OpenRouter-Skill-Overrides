@@ -30,6 +30,17 @@ def syntax_check(paths: list[Path]) -> None:
         print(f"syntax OK: {path}")
 
 
+def ensure_openrouter_only(paths: list[Path]) -> None:
+    forbidden = ("call_ollama", "localhost:11434", "127.0.0.1:11434", "/api/generate")
+    for path in paths:
+        content = path.read_text(encoding="utf-8").lower()
+        matches = [marker for marker in forbidden if marker.lower() in content]
+        if matches:
+            joined = ", ".join(matches)
+            raise SystemExit(f"FAIL: local Ollama reference in OpenRouter script {path}: {joined}")
+    print("OpenRouter-only script policy OK")
+
+
 def run_advisor(advisor: Path, *extra_args: str) -> dict:
     result = subprocess.run(
         [sys.executable, str(advisor), *extra_args],
@@ -87,6 +98,7 @@ def main() -> int:
             skills / "openrouter-pdf-extract" / "scripts" / "extract_pdf.py",
         ])
     syntax_check(python_files)
+    ensure_openrouter_only(repo_python_files)
 
     advisor = skills / "openrouter-model-advisor" / "scripts" / "recommend_model.py"
     if not advisor.exists():

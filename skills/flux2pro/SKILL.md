@@ -1,6 +1,6 @@
 ---
 name: flux2pro
-description: Legacy OpenRouter image-generation helper for FLUX-style and chat-based image models. Prefer openrouter-flux2-pro for FLUX.2 Pro work and use this only when its game-art presets or multi-model generate_flux.py script are specifically needed. This is not a coding offload skill; keep routine code edits on ollama-worker and heavy code review on openrouter-glm52.
+description: Legacy OpenRouter image-generation helper for FLUX-style and chat-based image models. Prefer openrouter-flux2-pro for FLUX.2 Pro work and use this only when its game-art presets or multi-model generate_flux.py script are specifically needed. This is not a coding offload skill.
 ---
 
 # OpenRouter Image Generation

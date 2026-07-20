@@ -1,6 +1,6 @@
 ---
 name: openrouter-heavy-task-gate
-description: "Route coding work between local ollama-worker and GLM 5.2 through OpenRouter with minimal user interruption. Use when working in local projects under C:\\vscode or similar repositories and the task is large, risky, architectural, cross-file, cross-service, hard to debug, involves major refactoring, migration planning, complex test failures, performance investigations, or would benefit from a second model review. Prefer automatic routing: ollama-worker for small bounded edits, OpenRouter/GLM for heavy analysis. Ask the user only for missing credentials, materially higher-cost model choices, production/destructive actions, unclear requirements that block progress, or sending sensitive/private context."
+description: "Decide whether coding work should be handled directly or escalated to GLM 5.2 through OpenRouter with minimal user interruption. Use when a task is large, risky, architectural, cross-file, cross-service, hard to debug, involves major refactoring, migration planning, complex test failures, performance investigations, or would benefit from a second model review. Ask the user only for missing credentials, materially higher-cost model choices, production/destructive actions, unclear requirements that block progress, or sending sensitive/private context."
 ---
 
 # OpenRouter Heavy Task Gate
@@ -8,7 +8,7 @@ description: "Route coding work between local ollama-worker and GLM 5.2 through 
 Use this skill as a quiet router for long sprints. Prefer progress over confirmation loops. The routing order is:
 
 1. The primary agent handles orchestration, context selection, final edits, and validation.
-2. `ollama-worker` from `C:\vscode\SharedOllama` handles small bounded code edits and FILE_OP patches.
+2. The primary agent handles small bounded code edits directly.
 3. OpenRouter/GLM handles large context, architecture, ambiguous failures, and second-pass review.
 
 ## Routing Rule
@@ -28,7 +28,7 @@ Ask one concise question only when an exception applies:
 - The operation is production-facing, destructive, security-sensitive, or could expose secrets.
 - Requirements are ambiguous enough that model routing cannot fix the uncertainty.
 
-If the task can be split into local worker units, use `ollama-worker` for those units and use GLM only for the remaining broad question.
+If the task can be split into bounded units, handle those units directly and use GLM only for the remaining broad question.
 
 Keep the default path quiet: for ordinary heavy coding work, GLM 5.2 is the cloud default and no separate model-shopping step is needed.
 
@@ -54,22 +54,13 @@ Use GLM 5.2 for:
 
 Do not use GLM for routine edits, small bug fixes, simple tests, formatting, command output, documentation wording, or narrow single-file changes unless the user asks for a second pass.
 
-Use `ollama-worker` instead for:
+Handle directly instead for:
 
 - one function, method, component, or test file
 - targeted replacement with exact context
 - small generated scripts
 - regex or documentation edits
-- local FILE_OP patch generation where the primary agent can review the diff
-
-## Local worker path
-
-Use the canonical local worker from SharedOllama:
-
-```powershell
-$worker = "C:\vscode\SharedOllama\skills\ollama-worker"
-python "$worker\scripts\call_ollama.py" --list
-```
+- small patches where the primary agent can review the diff
 
 ## OpenRouter Use
 

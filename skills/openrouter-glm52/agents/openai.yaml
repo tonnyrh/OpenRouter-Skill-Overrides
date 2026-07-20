@@ -1,4 +1,4 @@
 interface:
   display_name: "OpenRouter GLM 5.2"
   short_description: "Use GLM 5.2 for heavy coding review"
-  default_prompt: "Use $openrouter-glm52 for a heavy coding second pass or long-context repository analysis after local Ollama is unsuitable."
+  default_prompt: "Use $openrouter-glm52 for a heavy coding second pass or long-context repository analysis through OpenRouter."
