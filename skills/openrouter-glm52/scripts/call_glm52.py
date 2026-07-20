@@ -17,12 +17,28 @@ DEFAULT_MAX_TOKENS = 8192
 MIN_REASONING_MAX_TOKENS = 8192
 
 
+def configure_utf8_output() -> None:
+    """Keep Unicode model output printable on Windows and redirected streams."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8")
+        except (AttributeError, OSError, ValueError):
+            # Some embedded or replaced streams expose reconfigure but reject it.
+            continue
+
+
+configure_utf8_output()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Call z-ai/glm-5.2 via OpenRouter.")
     parser.add_argument("prompt", nargs="*", help="Prompt text. If omitted, stdin is used.")
     parser.add_argument("--system", default="You are a concise senior software engineer.")
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--reasoning-effort", choices=["low", "medium", "high", "xhigh"], default=None)
+    parser.add_argument("--reasoning-effort", choices=["low", "medium", "high", "xhigh"], default="high")
     parser.add_argument("--max-tokens", type=int, default=None, help=f"Maximum completion tokens (default: {DEFAULT_MAX_TOKENS}).")
     parser.add_argument("--temperature", type=float, default=None)
     parser.add_argument("--json", action="store_true", help="Print the raw JSON response.")
