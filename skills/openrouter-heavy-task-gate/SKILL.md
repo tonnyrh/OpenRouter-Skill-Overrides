@@ -78,7 +78,7 @@ Before calling OpenRouter:
 1. Check `OPENROUTER_API_KEY` is set.
 2. Keep secrets out of prompts, logs, files, commits, and final answers.
 3. Summarize only the minimum relevant context instead of sending entire files or repositories.
-4. Prefer `--reasoning-effort high` for hard engineering analysis and enough `--max-tokens` for final content, since GLM may spend tokens on reasoning before message content.
+4. Prefer `--reasoning-effort high` for hard engineering analysis and use `--max-tokens 8192` (or higher for long outputs) so reasoning cannot consume the entire response budget, since GLM may spend tokens on reasoning before message content.
 5. Treat GLM output as advice. Validate any implementation locally with tests, linters, or smoke checks.
 6. If `openrouter-model-advisor` recommends a premium model or a project model switch, ask only when the cost or behavior change is material; otherwise continue and note the choice in the final summary.
 
@@ -87,14 +87,15 @@ Before calling OpenRouter:
 The expected command for this override checkout is:
 
 ```powershell
-python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 "..."
 ```
 
 An installed runtime path may also be available, for example:
 
 ```powershell
-python "C:\Users\TonnyRogerHolm(Test)\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
-python "C:\Users\TonnyRogerHolm(Test)\.claude\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 2000 "..."
+python "C:\Users\TonnyRogerHolm(Test)\.codex\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 "..."
+python "C:\Users\TonnyRogerHolm(Test)\.claude\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 "..."
 ```
 
 If sandbox blocks network access, request escalation for that exact script command instead of working around it. For model lookup scripts from `openrouter-models`, `npx tsx ...` may need escalation because `tsx` starts an `esbuild` child process.
+

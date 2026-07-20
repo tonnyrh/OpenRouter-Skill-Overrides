@@ -13,7 +13,8 @@ import urllib.request
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "z-ai/glm-5.2"
-DEFAULT_MAX_TOKENS = 4096
+DEFAULT_MAX_TOKENS = 8192
+MIN_REASONING_MAX_TOKENS = 8192
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,7 +53,15 @@ def main() -> int:
     }
     if args.reasoning_effort:
         payload["reasoning"] = {"effort": args.reasoning_effort}
-    payload["max_tokens"] = args.max_tokens if args.max_tokens is not None else DEFAULT_MAX_TOKENS
+    requested_max_tokens = args.max_tokens if args.max_tokens is not None else DEFAULT_MAX_TOKENS
+    if args.reasoning_effort in {"high", "xhigh"} and requested_max_tokens < MIN_REASONING_MAX_TOKENS:
+        print(
+            f"Requested --max-tokens {requested_max_tokens} is too low for {args.reasoning_effort} reasoning; "
+            f"using {MIN_REASONING_MAX_TOKENS}.",
+            file=sys.stderr,
+        )
+        requested_max_tokens = MIN_REASONING_MAX_TOKENS
+    payload["max_tokens"] = requested_max_tokens
     if args.temperature is not None:
         payload["temperature"] = args.temperature
 
@@ -103,5 +112,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
 
 
