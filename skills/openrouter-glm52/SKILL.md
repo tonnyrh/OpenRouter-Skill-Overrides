@@ -15,6 +15,7 @@ Use `ollama-worker` from `C:\vscode\SharedOllama` first for small bounded edits.
 - API base: `https://openrouter.ai/api/v1`
 - Auth env var: `OPENROUTER_API_KEY`
 - Large code/architecture default: `--reasoning-effort high --max-tokens 8192`
+- HTTP timeout: 600 seconds by default; increase with `--timeout` for unusually slow reasoning calls.
 - Best use: long-context repo analysis, project-level software engineering, agentic coding plans, refactor review, complex multi-step automation, and second-pass review after local evidence is gathered.
 - Reasoning: prefer `high` for hard engineering tasks; use `xhigh` only when the task justifies extra cost and latency.
 
@@ -37,21 +38,21 @@ Run a quick prompt:
 
 ```powershell
 $env:PYTHONIOENCODING = 'utf-8'
-python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 "Review this migration plan for hidden risks: ..."
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 --timeout 600 "Review this migration plan for hidden risks: ..."
 ```
 
 Pipe larger context:
 
 ```powershell
 $env:PYTHONIOENCODING = 'utf-8'
-Get-Content .\notes\architecture.md | python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 --system "You are a senior software architect. Be concise."
+Get-Content .\notes\architecture.md | python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 --timeout 600 --system "You are a senior software architect. Be concise."
 ```
 
 Use higher reasoning:
 
 ```powershell
 $env:PYTHONIOENCODING = 'utf-8'
-python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 "Find likely bugs in this patch summary: ..."
+python "C:\vscode\OpenRouter-Skill-Overrides\skills\openrouter-glm52\scripts\call_glm52.py" --reasoning-effort high --max-tokens 8192 --timeout 600 "Find likely bugs in this patch summary: ..."
 ```
 
 The script also reconfigures `stdout` and `stderr` to UTF-8 internally so Unicode model output does not fail under Windows `cp1252`. Keep the environment line in examples for compatibility with Python launchers and surrounding pipeline commands.

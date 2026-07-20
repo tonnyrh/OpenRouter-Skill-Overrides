@@ -15,6 +15,7 @@ API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "z-ai/glm-5.2"
 DEFAULT_MAX_TOKENS = 8192
 MIN_REASONING_MAX_TOKENS = 8192
+DEFAULT_TIMEOUT_SECONDS = 600
 
 
 def configure_utf8_output() -> None:
@@ -33,6 +34,13 @@ def configure_utf8_output() -> None:
 configure_utf8_output()
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be greater than zero")
+    return parsed
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Call z-ai/glm-5.2 via OpenRouter.")
     parser.add_argument("prompt", nargs="*", help="Prompt text. If omitted, stdin is used.")
@@ -40,6 +48,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--reasoning-effort", choices=["low", "medium", "high", "xhigh"], default="high")
     parser.add_argument("--max-tokens", type=int, default=None, help=f"Maximum completion tokens (default: {DEFAULT_MAX_TOKENS}).")
+    parser.add_argument(
+        "--timeout",
+        type=positive_int,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help=f"HTTP timeout in seconds (default: {DEFAULT_TIMEOUT_SECONDS}).",
+    )
     parser.add_argument("--temperature", type=float, default=None)
     parser.add_argument("--json", action="store_true", help="Print the raw JSON response.")
     return parser.parse_args()
@@ -94,12 +108,22 @@ def main() -> int:
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=120) as response:
+        with urllib.request.urlopen(request, timeout=args.timeout) as response:
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise SystemExit(f"OpenRouter HTTP {exc.code}: {body}") from exc
+    except TimeoutError as exc:
+        raise SystemExit(
+            f"OpenRouter request timed out after {args.timeout} seconds. "
+            "Increase --timeout or lower --reasoning-effort."
+        ) from exc
     except urllib.error.URLError as exc:
+        if isinstance(exc.reason, TimeoutError):
+            raise SystemExit(
+                f"OpenRouter request timed out after {args.timeout} seconds. "
+                "Increase --timeout or lower --reasoning-effort."
+            ) from exc
         raise SystemExit(f"OpenRouter request failed: {exc}") from exc
 
     if args.json:
